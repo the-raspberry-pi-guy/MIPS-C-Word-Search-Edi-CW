@@ -9,7 +9,7 @@ dictionary_idx:		.space 4000
 main:
 	la $t9, dictionary_idx
 	addi $t0, $0, 1
-	addi $t9, $t9, 4
+	addi $t9, $t9, 0
 	sw $t0, ($t9)
 	
 main_end:      

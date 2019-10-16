@@ -26,13 +26,13 @@ newline:                .asciiz  "\n"
 # Global variables in memory
 #-------------------------------------------------------------------------
 # 
+dictionary_idx:		.space 4000
 grid:                   .space 33       # Maximun size of 1D grid_file + NULL
 .align 4                                # The next field will be aligned
 dictionary:             .space 11001    # Maximum number of words in dictionary *
                                         # ( maximum size of each word + \n) + NULL
 # You can add your data here!
 
-dictionary_idx:		.space 4000
 #=========================================================================
 # TEXT SEGMENT  
 #=========================================================================
@@ -137,7 +137,7 @@ END_LOOP2:
  INDEX_DICT_LOOP:
  	la $t3, dictionary($t2)	# c_input = dictionary[idx]
  	lb $t4, 0($t3) # Load address into t3 first, then load byte from address into t4
- 	beqz $t4, END_DICT_LOOP # if (c_input == '\0'), then break
+ 	beqz $t4, AFTER_DICT_LOOP # if (c_input == '\0'), then break
  	lb $t9, newline # Load newline character for comparison
  	beq $t4, $t9, INDEX_DICT # if (c_input == '\n'), then go INDEX_DICT
  RESUME_DICT_LOOP:
@@ -145,22 +145,26 @@ END_LOOP2:
   	j INDEX_DICT_LOOP
  
  INDEX_DICT:
- 	addi $t0, $t0, 4 # Increment dict_idx
- 	#add $t7, $t0, $t0
- 	#add $t7, $t7, $t7
+ 	addi $t0, $t0, 1 # Increment dict_idx
+ 	add $t6, $t0, $t0 # Double and double again dict_idx to get multiple of 4
+ 	add $t6, $t6, $t6 # this is for the alignment of the array 
  	la $t9, dictionary_idx # Load the address of the start of the dictionary_index
- 	#addi $t9, $t9, 0
- 	#addi $t0, $t0, 1 # Increment dict_idx
- 	#add $t7, $t0, $t0
- 	#add $t7, $t7, $t7
- 	#add $t8, $t7, $t9 #
- 	#add $t9, $t9, $t7
- 	sw $t1, ($t9) # store start_idx in next location 
+ 	add $t9, $t9, $t6 # add the aligned dict_idx to the base of the array
+ 	sw $t1, ($t9) # store start_idx in next location of array
  	addi $t1, $t1, 1 # start_idx = idx + 1
  	j RESUME_DICT_LOOP
  	
- END_DICT_LOOP:
+ AFTER_DICT_LOOP:
  	move $s7, $t0 # dict_num_words = dict_idx
+ 	jal strfind
+ 
+ #----------------------------------------------------------------
+ 				
+ strfind:
+ 	move $t0, $0 # int idx = 0
+ 	move $t1, $0 # int grid_idx = 0
+ 	
+ 	
 #------------------------------------------------------------------
 # Exit, DO NOT MODIFY THIS BLOCK
 #------------------------------------------------------------------
