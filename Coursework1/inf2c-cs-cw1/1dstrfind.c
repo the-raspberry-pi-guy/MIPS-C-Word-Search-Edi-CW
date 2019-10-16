@@ -70,14 +70,16 @@ void print_word(char *word)
 }
 
 // function to see if the string contains the (\n terminated) word
-int contain(char *string, char *word)
+int contain(char *string, char *word) //two targets
 {
   while (1) {
-    if (*string != *word){
-      return (*word == '\n');
-    }
+    if (*string != *word){ // if the string is no longer the same as the word
+      return (*word == '\n'); // return true if word is new line, false if it isn't
+    } // word will have been incremented to the new line character if it has been successful in
+    // finding a match between string and word, if there has been a match so far, but then it isn't
+    // the new line character, then the word has not finished (ie: not being found in nothing)
 
-    string++;
+    string++; // increment string and word pointers
     word++;
   }
 
@@ -87,22 +89,22 @@ int contain(char *string, char *word)
 // this functions finds the first match in the grid
 void strfind()
 {
-  int idx = 0;
-  int grid_idx = 0;
-  char *word;
-  while (grid[grid_idx] != '\0') {
-    for(idx = 0; idx < dict_num_words; idx ++) {
-      word = dictionary + dictionary_idx[idx]; 
-      if (contain(grid + grid_idx, word)) {
-        print_int(grid_idx);
+  int idx = 0; // starting index
+  int grid_idx = 0; // index of grid
+  char *word; // new pointer to a char
+  while (grid[grid_idx] != '\0') { // while the grid isn't the end of the file
+    for(idx = 0; idx < dict_num_words; idx ++) { // for each of the words in the dictionary
+      word = dictionary + dictionary_idx[idx]; // point to the base of the dictionary + the index, to pick the word
+      if (contain(grid + grid_idx, word)) { // if that part of the grid contains the word, do
+        print_int(grid_idx); // print that id number
         print_char(' ');
-        print_word(word);
+        print_word(word); // print the word that is there
         print_char('\n');
         return;
       }
     }
 
-    grid_idx++;
+    grid_idx++; // increment the grid count
   }
 
   print_string("-1\n");
@@ -183,20 +185,20 @@ int main (void)
   // storing the starting index of each word in the dictionary
   idx = 0;
   do {
-    c_input = dictionary[idx];
-    if(c_input == '\0') {
+    c_input = dictionary[idx]; // character input at index
+    if(c_input == '\0') { // if end of file then stop
       break;
     }
-    if(c_input == '\n') {
+    if(c_input == '\n') { // if new line then store the index of this word in the dictionary
       dictionary_idx[dict_idx ++] = start_idx;
-      start_idx = idx + 1;
+      start_idx = idx + 1; // increase the start index to find the next word
     }
     idx += 1;
-  } while (1);
+  } while (1); // this will stop from the break if end of file
 
   dict_num_words = dict_idx;
 
-  strfind();
+  strfind(); // go find a match between the dictionary and grid
 
   return 0;
 }
