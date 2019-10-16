@@ -137,7 +137,7 @@ END_LOOP2:
  INDEX_DICT_LOOP:
  	la $t3, dictionary($t2)	# c_input = dictionary[idx]
  	lb $t4, 0($t3) # Load address into t3 first, then load byte from address into t4
- 	beqz $t4, AFTER_DICT_LOOP # if (c_input == '\0'), then break
+ 	beqz $t4, AFTER_DICT # if (c_input == '\0'), then break
  	lb $t9, newline # Load newline character for comparison
  	beq $t4, $t9, INDEX_DICT # if (c_input == '\n'), then go INDEX_DICT
  RESUME_DICT_LOOP:
@@ -151,18 +151,66 @@ END_LOOP2:
  	la $t9, dictionary_idx # Load the address of the start of the dictionary_index
  	add $t9, $t9, $t6 # add the aligned dict_idx to the base of the array
  	sw $t1, ($t9) # store start_idx in next location of array
- 	addi $t1, $t1, 1 # start_idx = idx + 1
+ 	
+ 	li  $v0, 1        
+    	move $a0, $t1  # load desired value into argument register $a0, using pseudo-op
+    	syscall
+    	
+    	li $v0, 11
+    	addi $a0, $0, 32
+    	syscall
+ 	
+ 	addi $t1, $t2, 1 # start_idx = idx + 1
  	j RESUME_DICT_LOOP
  	
- AFTER_DICT_LOOP:
+ AFTER_DICT:
  	move $s7, $t0 # dict_num_words = dict_idx
  	jal strfind
  
- #----------------------------------------------------------------
- 				
+#-----------------------------------------------------------------
+# My Functions
+#----------------------------------------------------------------- 
+				
  strfind:
  	move $t0, $0 # int idx = 0
  	move $t1, $0 # int grid_idx = 0
+ 	# Let t3 be word pointer
+ FOR_EACH_DICT_WORD:
+	lb $t3, dictionary_idx($t0) # load value of dictionary index at index
+	add $t3, $t3, $t3 # align the index correctly for the dictionary
+	add $t3, $t3, $t3 # by x2 x2, for 4
+	la $t4, dictionary # load dictionary
+	add $t3, $t3, $t4 # word = dictionary + dictionary_idx[idx]
+	move $s6, $t3 # safely store the word ADDRESS in s6
+	la $t3, grid # load grid
+	add $t3, $t3, $t1 # store grid word address
+	move $s5, $t3 # put grid word ADDRESS into s5
+	jal contain
+
+ contain:
+ 	# set v1 to 1 if does contain
+ CONTAIN_LOOP:
+ 	lw $t9, ($s6) # store word in t9
+ 	lw $t8, ($s5) # store grid word in t8
+	bne $t9, $t8 CONTAIN_STRING_WORD_NE
+	addi $t9, $t9, 1 # increase word pointer
+	addi $t8, $t8, 1 # increase string pointer
+	j CONTAIN_LOOP
+	
+ CONTAIN_STRING_WORD_NE:
+	lb $t7, newline # Load newline character for comparison
+	beq $t9, $t7, SET_V1_1 # *word == '\n'
+	bne $t9, $t7, SET_V1_0 # *word != '\n'
+ SET_V1_1:
+ 	addi $v1, $0, 1 # if *word is new line then return 1
+ 	jr  $ra
+ SET_V1_0:
+ 	add $v1, $0, $0 # if word is not new line then return 0
+ 	jr $ra
+
+
+ 	
+ 
  	
  	
 #------------------------------------------------------------------
