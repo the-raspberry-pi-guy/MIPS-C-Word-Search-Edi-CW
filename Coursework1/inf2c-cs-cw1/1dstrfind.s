@@ -26,11 +26,13 @@ newline:                .asciiz  "\n"
 # Global variables in memory
 #-------------------------------------------------------------------------
 # 
-dictionary_idx:		.space 4000
+
 grid:                   .space 33       # Maximun size of 1D grid_file + NULL
 .align 4                                # The next field will be aligned
 dictionary:             .space 11001    # Maximum number of words in dictionary *
-                                        # ( maximum size of each word + \n) + NULL
+
+.align 2
+dictionary_idx:		.space 4000                                        # ( maximum size of each word + \n) + NULL
 # You can add your data here!
 
 #=========================================================================
@@ -148,24 +150,30 @@ END_LOOP2:
  	addi $t0, $t0, 1 # Increment dict_idx
  	add $t6, $t0, $t0 # Double and double again dict_idx to get multiple of 4
  	add $t6, $t6, $t6 # this is for the alignment of the array 
- 	la $t9, dictionary_idx # Load the address of the start of the dictionary_index
+ 	la $t9, dictionary_idx($0) # Load the address of the start of the dictionary_index
  	add $t9, $t9, $t6 # add the aligned dict_idx to the base of the array
  	sw $t1, ($t9) # store start_idx in next location of array
  	
- 	li  $v0, 1        
-    	move $a0, $t1  # load desired value into argument register $a0, using pseudo-op
-    	syscall
-    	
-    	li $v0, 11
-    	addi $a0, $0, 32
-    	syscall
+# 	li  $v0, 1        
+#   	move $a0, $t1  # load desired value into argument register $a0, using pseudo-op
+#  	syscall
+   	
+#    	li $v0, 11
+#    	addi $a0, $0, 32
+#    	syscall
  	
  	addi $t1, $t2, 1 # start_idx = idx + 1
  	j RESUME_DICT_LOOP
  	
  AFTER_DICT:
  	move $s7, $t0 # dict_num_words = dict_idx
+ 	#addi $sp,$sp,-4 # POP
+	#sw $ra,0($sp)
+	
  	jal strfind
+ 	
+ 	#lw $ra,0($sp)
+ 	#addi $sp, $sp, 4 # PUSH back on
  
 #-----------------------------------------------------------------
 # My Functions
@@ -176,43 +184,77 @@ END_LOOP2:
  	move $t1, $0 # int grid_idx = 0
  	# Let t3 be word pointer
  FOR_EACH_DICT_WORD:
-	lb $t3, dictionary_idx($t0) # load value of dictionary index at index
-	add $t3, $t3, $t3 # align the index correctly for the dictionary
-	add $t3, $t3, $t3 # by x2 x2, for 4
+	lw $t3, dictionary_idx($t0) # load value of dictionary index at index
+	#add $t3, $t3, $t3 # align the index correctly for the dictionary
+	#add $t3, $t3, $t3 # by x2 x2, for 4
 	la $t4, dictionary # load dictionary
 	add $t3, $t3, $t4 # word = dictionary + dictionary_idx[idx]
 	move $s6, $t3 # safely store the word ADDRESS in s6
 	la $t3, grid # load grid
 	add $t3, $t3, $t1 # store grid word address
 	move $s5, $t3 # put grid word ADDRESS into s5
+	
+	addi $sp,$sp,-4 # POP
+	sw $ra,0($sp)
+	
 	jal contain
+	
+	lw $ra,0($sp)
+ 	addi $sp, $sp, 4 # PUSH back on
+	
+	addi $t0, $t0, 4 # increase the dictionary index
+	bge $t0, $s7, CHANGE_GRID_WORD # if iterated through dictionary, go to next grid word
+	beqz $v1, FOR_EACH_DICT_WORD # if dictionary not match with grid word, try next dictionary
+	beq $v1, 1, FOUND_WORD
+
+CHANGE_GRID_WORD:
+	addi $t1, $t1, 1
+	j FOR_EACH_DICT_WORD	
+	
+FOUND_WORD:	
+	li  $v0, 1    # found it!    
+    	move $a0, $t1  #print id number
+    	syscall
+    	
+    	li  $v0, 11    # found it!    
+    	addi $a0, $0, 32  #print space
+    	syscall
+    	
+    	li  $v0, 1    # found it!    
+    	lw $a0, ($s6)  #print word
+    	syscall
+	
+	j END
 
  contain:
  	# set v1 to 1 if does contain
  CONTAIN_LOOP:
- 	lw $t9, ($s6) # store word in t9
- 	lw $t8, ($s5) # store grid word in t8
-	bne $t9, $t8 CONTAIN_STRING_WORD_NE
-	addi $t9, $t9, 1 # increase word pointer
-	addi $t8, $t8, 1 # increase string pointer
+ 	lb $t9, ($s6) # store character of word in t9
+ 	lb $t8, ($s5) # store character of grid in t8
+ 	
+ 	beqz $t8, END # IF REACHED THE END OF THE GRID, END PROGRAM
+ 	
+	bne $t9, $t8 IF_CHARACTERS_NOT_EQUAL # if (*string != *word)
+	addi $s6, $s6, 1 # increase word character pointer
+	addi $s5, $s5, 1 # increase string character pointer
 	j CONTAIN_LOOP
 	
- CONTAIN_STRING_WORD_NE:
+ IF_CHARACTERS_NOT_EQUAL:
 	lb $t7, newline # Load newline character for comparison
 	beq $t9, $t7, SET_V1_1 # *word == '\n'
 	bne $t9, $t7, SET_V1_0 # *word != '\n'
  SET_V1_1:
  	addi $v1, $0, 1 # if *word is new line then return 1
- 	jr  $ra
+	jr $ra
  SET_V1_0:
  	add $v1, $0, $0 # if word is not new line then return 0
- 	jr $ra
+	jr $ra
 
 
  	
  
  	
- 	
+END: 	
 #------------------------------------------------------------------
 # Exit, DO NOT MODIFY THIS BLOCK
 #------------------------------------------------------------------
