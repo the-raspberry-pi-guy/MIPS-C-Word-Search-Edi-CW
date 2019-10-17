@@ -30,10 +30,13 @@ newline:                .asciiz  "\n"
 grid:                   .space 33       # Maximun size of 1D grid_file + NULL
 .align 4                                # The next field will be aligned
 dictionary:             .space 11001    # Maximum number of words in dictionary *
+found_word_address: 	.space 1000
 
 .align 2
 dictionary_idx:		.space 4000                                        # ( maximum size of each word + \n) + NULL
 # You can add your data here!
+
+
 
 #=========================================================================
 # TEXT SEGMENT  
@@ -154,26 +157,14 @@ END_LOOP2:
  	add $t9, $t9, $t6 # add the aligned dict_idx to the base of the array
  	sw $t1, ($t9) # store start_idx in next location of array
  	
-# 	li  $v0, 1        
-#   	move $a0, $t1  # load desired value into argument register $a0, using pseudo-op
-#  	syscall
-   	
-#    	li $v0, 11
-#    	addi $a0, $0, 32
-#    	syscall
- 	
  	addi $t1, $t2, 1 # start_idx = idx + 1
  	j RESUME_DICT_LOOP
  	
  AFTER_DICT:
  	move $s7, $t0 # dict_num_words = dict_idx
- 	#addi $sp,$sp,-4 # POP
-	#sw $ra,0($sp)
 	
  	jal strfind
  	
- 	#lw $ra,0($sp)
- 	#addi $sp, $sp, 4 # PUSH back on
  
 #-----------------------------------------------------------------
 # My Functions
@@ -184,9 +175,7 @@ END_LOOP2:
  	move $t1, $0 # int grid_idx = 0
  	# Let t3 be word pointer
  FOR_EACH_DICT_WORD:
-	lw $t3, dictionary_idx($t0) # load value of dictionary index at index
-	#add $t3, $t3, $t3 # align the index correctly for the dictionary
-	#add $t3, $t3, $t3 # by x2 x2, for 4
+	lw $t3, dictionary_idx($t0) # load value of dictionary index at index4
 	la $t4, dictionary # load dictionary
 	add $t3, $t3, $t4 # word = dictionary + dictionary_idx[idx]
 	move $s6, $t3 # safely store the word ADDRESS in s6
@@ -202,35 +191,43 @@ END_LOOP2:
 	lw $ra,0($sp)
  	addi $sp, $sp, 4 # PUSH back on
 	
-	addi $t0, $t0, 4 # increase the dictionary index
-	bge $t0, $s7, CHANGE_GRID_WORD # if iterated through dictionary, go to next grid word
-	beqz $v1, FOR_EACH_DICT_WORD # if dictionary not match with grid word, try next dictionary
 	beq $v1, 1, FOUND_WORD
+	addi $t0, $t0, 4 # increase the dictionary index
+	sll $t5, $s7, 2 # dictionary index total * 4
+	bgt  $t0, $t5, CHANGE_GRID_WORD # if iterated through dictionary, go to next grid word
+	beqz $v1, FOR_EACH_DICT_WORD # if dictionary not match with grid word, try next dictionary
 
 CHANGE_GRID_WORD:
 	addi $t1, $t1, 1
+	move $t0, $0
 	j FOR_EACH_DICT_WORD	
 	
 FOUND_WORD:	
 	li  $v0, 1    # found it!    
-    	move $a0, $t1  #print id number
+    	add $a0, $0, $t1  #print id number
     	syscall
     	
     	li  $v0, 11    # found it!    
     	addi $a0, $0, 32  #print space
     	syscall
     	
-    	li  $v0, 1    # found it!    
-    	lw $a0, ($s6)  #print word
-    	syscall
-	
-	j END
+    	li $v0, 11
+    	lw $a3, dictionary_idx($t0)
+    	jal print_dictionary_word
 
+	j END
+	
+ #---------------------------------------------------------------
+ 
  contain:
  	# set v1 to 1 if does contain
  CONTAIN_LOOP:
  	lb $t9, ($s6) # store character of word in t9
  	lb $t8, ($s5) # store character of grid in t8
+ 	
+ 	li $v0, 11
+ 	move $a0, $t9
+ 	syscall
  	
  	beqz $t8, END # IF REACHED THE END OF THE GRID, END PROGRAM
  	
@@ -240,20 +237,33 @@ FOUND_WORD:
 	j CONTAIN_LOOP
 	
  IF_CHARACTERS_NOT_EQUAL:
-	lb $t7, newline # Load newline character for comparison
-	beq $t9, $t7, SET_V1_1 # *word == '\n'
-	bne $t9, $t7, SET_V1_0 # *word != '\n'
+	bne $t9, '\n', SET_V1_0 # *word != '\n'
+	beq $t9, '\n', SET_V1_1 # *word == '\n'
  SET_V1_1:
  	addi $v1, $0, 1 # if *word is new line then return 1
 	jr $ra
+
  SET_V1_0:
  	add $v1, $0, $0 # if word is not new line then return 0
 	jr $ra
-
-
- 	
  
- 	
+ #---------------------------------------------------------------
+ 
+ print_dictionary_word:
+ 	# assuming the address of the dictionary word to be printed is in $a3
+ 	li  $v0, 11    
+    	move $a1, $a3
+ UNTIL_DONE:
+ 	lb $a0, dictionary($a1)
+    	syscall
+    	addi $a1, $a1, 1
+    	lb $t8, dictionary($a1)
+    	beqz $t8, STOP_PRINTING_WORD
+    	beq $t8, '\n', STOP_PRINTING_WORD
+    	j UNTIL_DONE
+ STOP_PRINTING_WORD:
+ 	jr $ra
+
 END: 	
 #------------------------------------------------------------------
 # Exit, DO NOT MODIFY THIS BLOCK
