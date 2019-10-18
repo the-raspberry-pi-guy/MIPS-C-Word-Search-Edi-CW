@@ -102,13 +102,13 @@ void strfind()
         print_char(' ');
         print_word(dictionary_word); // print the word that is there
         print_char('\n');
-        found = 1; // found at least one word, so set found to 1
+        found++; // found at least one word, so set found to 1
       }
       grid_idx++; // increment the grid search
     }
   }
 
-  if (!found) { // if a word hasn't been found then print "-1"
+  if (found == 0) { // if a word hasn't been found then print "-1"
     print_string("-1\n");
   }
 }
