@@ -1,6 +1,6 @@
 
 #=========================================================================
-# 1D String Finder 
+# 1D String Finder (ALL MATCHES)
 #=========================================================================
 # Finds all matching words from dictionary in the grid
 # 
@@ -161,39 +161,36 @@ INDEX_DICT:
         j RESUME_DICT_LOOP              # Resume the indexing loop
 
 AFTER_DICT:
- 	move $s7, $t0                   # dict_num_words = dict_idx - store total dictionary words
- 	jal strfind                     # strfind() - jump to the strfind() procedure 
+        move $s7, $t0                   # dict_num_words = dict_idx - store total dictionary words
+        jal strfind                     # strfind() - jump to the strfind() procedure 
  	
  
 #------------------------------------------------------------------
-# STRFIND FUNCTION
+# STRFIND FUNCTION - find all matching dictionary words in a string
 #------------------------------------------------------------------ 
 				
 strfind:
-        move $t0, $0 # int idx = 0
-        move $t1, $0 # int grid_idx = 0
-        move $t4, $0 # int found = 0
+        move $t0, $0                    # int idx = 0
+        move $t1, $0                    # int grid_idx = 0
+        move $s4, $0                    # int found = 0
  	# Let t3 be dictionary word pointer, equivalent to char *word
- 	j FOR_EACH_DICT_WORD
  	
-FOR_EACH_DICT_WORD_4:
-#        addi $t0, $t0, 4 # prepare next dictionary_word for next loop NEXT TIME                                	                 	                                	                 
-FOR_EACH_DICT_WORD: # for(idx = 0; idx < dict_num_words; idx ++) - label for this purpose
-        sll $t5, $s7, 2 # Multiply total number of word in dictionary by 4
-        bgt $t0, $t5, END # if exhausted dictionary words, end
-        addi $t0, $t0, 4 # prepare next dictionary_word for next loop NEXT TIME                                	                 	                                	                 
-        move $t1, $0 # Set grid_idx = 0
-        lw $t3, dictionary_idx($t0)
-        la $t6, dictionary
-        add $s6, $t3, $t6 # dictionary_word = dictionary + dictionary_idx[idx]
+FOR_EACH_DICT_WORD:                     # for(idx = 0; idx < dict_num_words; idx ++) - label for this purpose
+        sll $t5, $s7, 2                 # Multiply total number of word in dictionary by 4
+        bge  $t0, $t5, END              # If exhausted dictionary words, end for loop, branch to END for final checks on found variable
         
-WHILE_NOT_END_OF_GRID:
-        la $t3, grid
-        add $s5, $t3, $t1 # grid + grid_idx
-        lb $a2, ($s5) # check if iterated through the entire grid
-        beqz $a2, FOR_EACH_DICT_WORD_4
+        addi $t0, $t0, 4                # Prepare next dictionary_word index for next loop NEXT TIME                                	                 	                                	                 
+        move $t1, $0                    # Set grid_idx = 0, ready to be iterated through
+        lw $t3, dictionary_idx($t0)     # Load dictionary index
+        la $t6, dictionary              # Load address of base of dictionary
+        add $s6, $t3, $t6               # dictionary_word = dictionary + dictionary_idx[idx]
+        
+WHILE_NOT_END_OF_GRID:                  # while(grid[grid_idx] != '\0')
+        la $t3, grid                    # Load address of base of grid
+        add $s5, $t3, $t1               # grid + grid_idx
+        lb $a2, ($s5)                   # Load grid character to check if iterated through the entire grid yet
+        beqz $a2, FOR_EACH_DICT_WORD    # If character is \0 then break to FOR_EACH_DICT_WORD, finishes while loop
 
-        
         addi $sp,$sp,-4                 # POP the current address register to the stack
         sw $ra,0($sp)
         jal contain                     # if (contain(grid + grid_idx, word)) - call contain procedure on s5 and s6 registers
@@ -201,9 +198,9 @@ WHILE_NOT_END_OF_GRID:
         addi $sp, $sp, 4
 
         beq $v1, 1, FOUND_WORD          # if (contain(grid + grid_idx,word) evaulates to true, ie: a word has been found, branch to FOUND_WORD
-RESUME_NOT_END_OF_GRID:
-        addi $t1, $t1, 1 # grid_idx++               
-        j WHILE_NOT_END_OF_GRID	
+RESUME_NOT_END_OF_GRID:                 # Continue to find all the matches
+        addi $t1, $t1, 1                # grid_idx++               
+        j WHILE_NOT_END_OF_GRID         # Increase grid index and continue loop
 	
 FOUND_WORD:                             # if (contain(grid + grid_idx,word), do:
         li  $v0, 1                      # Set syscall to print integer  
@@ -224,8 +221,8 @@ FOUND_WORD:                             # if (contain(grid + grid_idx,word), do:
         addi $a0, $0, 10                # Add ASCII for new line to be printed
         syscall                         # print_char('\n')
         
-        addi $t4, $t4, 1 # increment found	               
-        j RESUME_NOT_END_OF_GRID                      # CONCLUDE PROGRAM
+        addi $s4, $s4, 1                # found++ - Increment found to indicate at least one word has been found	               
+        j RESUME_NOT_END_OF_GRID        # Loop back to continue searching through grid
 	
 #------------------------------------------------------------------
 # CONTAIN FUNCTION
@@ -238,9 +235,6 @@ contain:
 CONTAIN_LOOP:
         lb $t9, ($t7)                   # *word - dereference pointer of dictionary word - store character of word in t9
         lb $t8, ($t3)                   # *string - dereference pointer of grid word - store character of string in t8
-        
-        #beqz $t8, SET_V1_1         # IF REACHED THE END OF THE GRID, END PROGRAM WITH -1 FAILURE
-                                        # Incorporates the functionality of (while grid[grid_idx] !- '\0')
         
         bne $t9, $t8 IF_CHARACTERS_NOT_EQUAL # if (*string != *word)
         addi $t7, $t7, 1                # word++ increase word character pointer
@@ -284,6 +278,17 @@ END_WITH_FAILURE:                       # If no word is found then print out -1
         addi $a0, $0, 10                # print new line
         
 END:
+        beqz $s4, PRINT_MINUS1
+        j main_end
+        
+PRINT_MINUS1:
+        li  $v0, 1                      # Set syscall to print integer  
+        add $a0, $0, -1                 # Add -1 to be printed
+        syscall                         # print_string("-1")
+        
+        li  $v0, 11                     # Set syscall to print char   
+        addi $a0, $0, 10                # print new line
+        syscall 
 #------------------------------------------------------------------
 # Exit, DO NOT MODIFY THIS BLOCK
 #------------------------------------------------------------------

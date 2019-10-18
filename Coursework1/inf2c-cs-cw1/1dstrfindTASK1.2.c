@@ -86,7 +86,7 @@ int contain(char *string, char *word) //two targets
   return 0;
 }
 
-// this functions finds the first match in the grid
+// this functions finds all of the matches in the grid
 void strfind()
 {
   char *dictionary_word;
