@@ -183,6 +183,7 @@ int main (void)
   ///////////////You can add your code here!//////////////////////
 
   // storing the starting index of each word in the dictionary
+
   idx = 0;
   do {
     c_input = dictionary[idx]; // character input at index
