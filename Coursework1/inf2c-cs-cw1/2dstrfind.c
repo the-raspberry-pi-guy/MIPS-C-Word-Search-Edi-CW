@@ -70,7 +70,7 @@ void print_word(char *word)
 int contain(char *string, char *word) //two targets
 {
   while (1) {
-    // Second check in this if statement is now necessary as a string may end in newline character!
+    // Second check in this if statement is now necessary as a string may end in newline character as well!
     if ((*string != *word) || (*string == '\n' && *word == '\n')){ // if the string is no longer the same as the word
       return ((*word == '\n')); // return true if dictionary word is new line, false if it isn't
     } // word will have been incremented to the new line character if it has been successful in
@@ -96,23 +96,28 @@ void strfind()
     grid_idx = 0; // re-index to the start of the grid when a new dictionary word is chosen
     row = 0; // reset row counter
     dictionary_word = dictionary + dictionary_idx[idx]; // new dictionary word address
-    while (grid[grid_idx] != '\0') {  
-        if (grid[grid_idx] == '\n') {
-          grid_idx++;
-          row++; // go to next row on the counter
-          }
+    int col = -1;
+    int row = -1;
+    while (grid[grid_idx] != '\0') { 
+      row++; 
+      while (grid[grid_idx] != '\n') {
+        col++;
         if (contain(grid + grid_idx, dictionary_word)) { // if the dictionary word is in the address, print
-          int col = grid_idx - row;
           print_int(row);
           print_char(',');
           print_int(col); // print that id number
+          print_char(' ');
+          print_char('H');
           print_char(' ');
           print_word(dictionary_word); // print the word that is there
           print_char(' ');
           print_char('\n');
           found++; // found at least one word, so increment found
           }
-     grid_idx++;
+        grid_idx++;
+      }
+      grid_idx++;
+      col = -1;
     }
   }
 
