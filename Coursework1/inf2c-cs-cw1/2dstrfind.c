@@ -54,7 +54,72 @@ char dictionary[MAX_DICTIONARY_WORDS * (MAX_WORD_SIZE + 1 /* for \n */ ) + 1 /* 
 /////////////// Do not modify anything above
 ///////////////Put your global variables/functions here///////////////////////
 
+int dict_num_words = 0;
+int dictionary_idx[MAX_DICTIONARY_WORDS];
 
+// function to print found word
+void print_word(char *word)
+{
+  while(*word != '\n' && *word != '\0') {
+    print_char(*word);
+    word++;
+  }
+}
+
+// function to see if the string contains the (\n terminated) word
+int contain(char *string, char *word) //two targets
+{
+  while (1) {
+    // Second check in this if statement is now necessary as a string may end in newline character!
+    if ((*string != *word) || (*string == '\n' && *word == '\n')){ // if the string is no longer the same as the word
+      return ((*word == '\n')); // return true if dictionary word is new line, false if it isn't
+    } // word will have been incremented to the new line character if it has been successful in
+    // finding a match between string and word, if there has been a match so far, but then it isn't
+    // the new line character, then the word has not finished (ie: not being found in nothing)
+
+    string++; // increment string and word pointers
+    word++;
+  }
+
+  return 0;
+}
+
+// this functions finds all of the matches in the grid
+void strfind()
+{
+  char *dictionary_word;
+  int idx = 0;
+  int grid_idx = 0;
+  int found = 0; // Variable store whether a word has been found or not
+  int row = 0;
+  for(idx = 0; idx < dict_num_words; idx ++) { // for each word in the dictionary, check if there is a match
+    grid_idx = 0; // re-index to the start of the grid when a new dictionary word is chosen
+    row = 0; // reset row counter
+    dictionary_word = dictionary + dictionary_idx[idx]; // new dictionary word address
+    while (grid[grid_idx] != '\0') {  
+        if (grid[grid_idx] == '\n') {
+          grid_idx++;
+          row++; // go to next row on the counter
+          }
+        if (contain(grid + grid_idx, dictionary_word)) { // if the dictionary word is in the address, print
+          int col = grid_idx - row;
+          print_int(row);
+          print_char(',');
+          print_int(col); // print that id number
+          print_char(' ');
+          print_word(dictionary_word); // print the word that is there
+          print_char(' ');
+          print_char('\n');
+          found++; // found at least one word, so increment found
+          }
+     grid_idx++;
+    }
+  }
+
+  if (found == 0) { // if a word hasn't been found then print "-1"
+    print_string("-1\n");
+  }
+}
 
 //---------------------------------------------------------------------------
 // MAIN function
@@ -67,7 +132,8 @@ int main (void)
   ///////////////Please DO NOT touch this part/////////////////
   int c_input;
   int idx = 0;
-
+  int dict_idx = 0;
+  int start_idx = 0;
 
   // open grid file
   FILE *grid_file = fopen(grid_file_name, "r");
@@ -120,6 +186,22 @@ int main (void)
   //////////////////////////End of reading////////////////////////
   ///////////////You can add your code here!//////////////////////
 
+  idx = 0;
+    do {
+      c_input = dictionary[idx]; // character input at index
+      if(c_input == '\0') { // if end of file then stop
+        break;
+      }
+      if(c_input == '\n') { // if new line then store the index of this word in the dictionary
+        dictionary_idx[dict_idx ++] = start_idx;
+        start_idx = idx + 1; // increase the start index to find the next word
+      }
+      idx += 1;
+    } while (1); // this will stop from the break if end of file
+
+    dict_num_words = dict_idx;
+  
+    strfind();
 
   return 0;
 }
