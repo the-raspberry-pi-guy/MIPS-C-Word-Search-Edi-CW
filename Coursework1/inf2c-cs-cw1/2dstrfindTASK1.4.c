@@ -98,8 +98,8 @@ int v_contain(char *string, char *word) //two targets
     // finding a match between string and word, if there has been a match so far, but then it isn't
     // the new line character, then the word has not finished (ie: not being found in nothing)
 
-    string = string + number_of_cols; // increment string and word pointers
-    if (string > grid+total_grid_chars) {break;}
+    string = string + number_of_cols +1; // increment string and word pointers (+1 for newline char)
+// if (string > grid+total_grid_chars) {return 0;} // Turns out that this is unnecessary
     word++;
   }
 
@@ -109,7 +109,6 @@ int v_contain(char *string, char *word) //two targets
 // this functions finds all of the VERTICAL matches in the grid
 void v_strfind()
 {
-
   char *dictionary_word;
   int idx = 0;
   int grid_idx = 0;
@@ -274,7 +273,7 @@ int main (void)
   }
   total_grid_chars = number_of_rows * number_of_cols;
 
-//  h_strfind();
+  h_strfind();
   v_strfind();
 
   if (found == 0) { // if a word hasn't been found at all then print "-1"
