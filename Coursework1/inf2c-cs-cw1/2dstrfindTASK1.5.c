@@ -254,18 +254,18 @@ int main (void)
 
   // run calculations to work out the number of columns and rows in the grid
   int i = 0;
-  int j = 0;
   // increment through the grid to find first newline occurence, no. of chars before that is the number of cols (width of grid)
   while (grid[i] != '\n') {
     number_of_cols++;
     i++;
   }
+  i = 0; // Reset counting variable for next loop
   // increment through the grid until the end, count the number of newline occurences - this is the number of rows (length of grid)
-  while (grid[j] != '\0') {
-    if (grid[j] == '\n') {
+  while (grid[i] != '\0') {
+    if (grid[i] == '\n') {
       number_of_rows++;
     }
-    j++;
+    i++;
   }
 
   strfind(); // search for all matches
