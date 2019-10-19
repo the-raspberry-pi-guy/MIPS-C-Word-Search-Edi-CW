@@ -103,7 +103,7 @@ int v_contain(char *string, char *word) //two targets
 }
 
 // this functions finds all of the VERTICAL matches in the grid
-void v_strfind()
+void strfind()
 {
   char *dictionary_word;
   int idx = 0;
@@ -244,7 +244,7 @@ int main (void)
   }
 //total_grid_chars = number_of_rows * number_of_cols; // work out the maximum characters in grid (unnecessary)
 
-  v_strfind(); // search for vertical matches
+  strfind(); // search for vertical matches
 
   if (found == 0) { // if a word hasn't been found at all then print "-1"
     print_string("-1\n");

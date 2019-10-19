@@ -9,7 +9,7 @@
 *
 ***********************************************************************/
 // ==========================================================================
-// 2D String Finder VERTICAL & HORIZONTAL & DIAGONAL
+// 2D String Finder VERTICAL & HORIZONTAL
 // ==========================================================================
 // Finds the matching words from dictionary in the 2D grid
 
@@ -103,7 +103,7 @@ int v_contain(char *string, char *word) //two targets
 }
 
 // this functions finds all of the VERTICAL matches in the grid
-void v_strfind()
+void strfind()
 {
   char *dictionary_word;
   int idx = 0;
@@ -117,7 +117,19 @@ void v_strfind()
       row++; 
       while (grid[grid_idx] != '\n') {
         col++;
-        if (v_contain(grid + grid_idx, dictionary_word)) { // if the dictionary word is in the address, print
+        if (h_contain(grid + grid_idx, dictionary_word)) { // if HORIZONTAL WORD found, print
+          print_int(row);
+          print_char(',');
+          print_int(col); // print that id number
+          print_char(' ');
+          print_char('H');
+          print_char(' ');
+          print_word(dictionary_word); // print the word that is there
+          print_char(' ');
+          print_char('\n');
+          found++; // found at least one word, so increment found
+          }
+        if (v_contain(grid + grid_idx, dictionary_word)) { // if VERTICAL WORD found, print
           print_int(row);
           print_char(',');
           print_int(col); // print that id number
@@ -133,41 +145,6 @@ void v_strfind()
       }
       grid_idx++;
       col = -1;
-    }
-  }
-}
-
-// this functions finds all of the HORIZONTAL matches in the grid
-void h_strfind()
-{
-  char *dictionary_word;
-  int idx = 0;
-  int grid_idx = 0;
-  for(idx = 0; idx < dict_num_words; idx ++) { // for each word in the dictionary, check if there is a match
-    grid_idx = 0; // re-index to the start of the grid when a new dictionary word is chosen
-    dictionary_word = dictionary + dictionary_idx[idx]; // new dictionary word address
-    int col = -1; // start count at -1 for row and col as rows and columns are indexed from 0
-    int row = -1;
-    while (grid[grid_idx] != '\0') { // while the file hasn't ended
-      row++; 
-      while (grid[grid_idx] != '\n') { // while on this row
-        col++;
-        if (h_contain(grid + grid_idx, dictionary_word)) { // if the dictionary word is in the address, print
-          print_int(row);
-          print_char(',');
-          print_int(col); // print that id number
-          print_char(' ');
-          print_char('H');
-          print_char(' ');
-          print_word(dictionary_word); // print the word that is there
-          print_char(' ');
-          print_char('\n');
-          found++; // found at least one word, so increment found
-          }
-        grid_idx++;
-      }
-      grid_idx++;
-      col = -1; // reset the column count
     }
   }
 }
@@ -267,8 +244,7 @@ int main (void)
   }
 //total_grid_chars = number_of_rows * number_of_cols; // work out the maximum characters in grid (unnecessary)
 
-  h_strfind(); // search for horizontal matches
-  v_strfind(); // search for vertical matches
+  strfind(); // search for vertical matches
 
   if (found == 0) { // if a word hasn't been found at all then print "-1"
     print_string("-1\n");
