@@ -59,7 +59,7 @@ int dictionary_idx[MAX_DICTIONARY_WORDS];
 int found = 0; // Variable store whether a word has been found or not
 int number_of_rows = 1; //always at least 1 row
 int number_of_cols = 0;
-int total_grid_chars = 0;
+//int total_grid_chars = 0;
 
 // function to print found word
 void print_word(char *word)
@@ -70,8 +70,9 @@ void print_word(char *word)
   }
 }
 
+// HORIZONTAL STRING/WORD MATCHER
 // function to see if the string contains the (\n terminated) word
-int contain(char *string, char *word) //two targets
+int h_contain(char *string, char *word) //two targets
 {
   while (1) {
     // Second check in this if statement is now necessary as a string may end in newline character as well!
@@ -84,25 +85,20 @@ int contain(char *string, char *word) //two targets
     string++; // increment string and word pointers
     word++;
   }
-
   return 0;
 }
 
+// VERTICAL STRING/WORD MATCHER
 int v_contain(char *string, char *word) //two targets
 {
   while (1) {
-    // Second check in this if statement is now necessary as a string may end in newline character as well!
     if (*string != *word){ // if the string is no longer the same as the word
-      return ((*word == '\n')); // return true if dictionary word is new line, false if it isn't
-    } // word will have been incremented to the new line character if it has been successful in
-    // finding a match between string and word, if there has been a match so far, but then it isn't
-    // the new line character, then the word has not finished (ie: not being found in nothing)
-
-    string = string + number_of_cols +1; // increment string and word pointers (+1 for newline char)
-// if (string > grid+total_grid_chars) {return 0;} // Turns out that this is unnecessary
+      return ((*word == '\n')); // return true if dictionary word is new line, false if it isn't, functionality same as h_contain
+    }
+    string = string + number_of_cols + 1; // increment string and word pointers (+1 for newline char too)
+//  if (string > grid+total_grid_chars) {return 0;} // Turns out that this is unnecessary
     word++;
   }
-
   return 0;
 }
 
@@ -112,7 +108,6 @@ void v_strfind()
   char *dictionary_word;
   int idx = 0;
   int grid_idx = 0;
-  int row = 0;
   for(idx = 0; idx < dict_num_words; idx ++) { // for each word in the dictionary, check if there is a match
     grid_idx = 0; // re-index to the start of the grid when a new dictionary word is chosen
     dictionary_word = dictionary + dictionary_idx[idx]; // new dictionary word address
@@ -148,18 +143,16 @@ void h_strfind()
   char *dictionary_word;
   int idx = 0;
   int grid_idx = 0;
-  int row = 0;
   for(idx = 0; idx < dict_num_words; idx ++) { // for each word in the dictionary, check if there is a match
     grid_idx = 0; // re-index to the start of the grid when a new dictionary word is chosen
-    row = 0; // reset row counter
     dictionary_word = dictionary + dictionary_idx[idx]; // new dictionary word address
     int col = -1; // start count at -1 for row and col as rows and columns are indexed from 0
     int row = -1;
-    while (grid[grid_idx] != '\0') { 
+    while (grid[grid_idx] != '\0') { // while the file hasn't ended
       row++; 
-      while (grid[grid_idx] != '\n') {
+      while (grid[grid_idx] != '\n') { // while on this row
         col++;
-        if (contain(grid + grid_idx, dictionary_word)) { // if the dictionary word is in the address, print
+        if (h_contain(grid + grid_idx, dictionary_word)) { // if the dictionary word is in the address, print
           print_int(row);
           print_char(',');
           print_int(col); // print that id number
@@ -174,7 +167,7 @@ void h_strfind()
         grid_idx++;
       }
       grid_idx++;
-      col = -1;
+      col = -1; // reset the column count
     }
   }
 }
@@ -259,6 +252,7 @@ int main (void)
 
   dict_num_words = dict_idx;
 
+  // Run calculations to work out the number of columns and rows in the grid
   int i = 0;
   int j = 0;
   while (grid[i] != '\n') {
@@ -271,10 +265,10 @@ int main (void)
     }
     j++;
   }
-  total_grid_chars = number_of_rows * number_of_cols;
+//total_grid_chars = number_of_rows * number_of_cols; // work out the maximum characters in grid (unnecessary)
 
-  h_strfind();
-  v_strfind();
+  h_strfind(); // search for horizontal matches
+  v_strfind(); // search for vertical matches
 
   if (found == 0) { // if a word hasn't been found at all then print "-1"
     print_string("-1\n");
