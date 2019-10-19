@@ -9,7 +9,7 @@
 *
 ***********************************************************************/
 // ==========================================================================
-// 2D String Finder VERTICAL & HORIZONTAL
+// 2D String Finder VERTICAL & HORIZONTAL & DIAGONAL
 // ==========================================================================
 // Finds the matching words from dictionary in the 2D grid
 
@@ -102,6 +102,20 @@ int v_contain(char *string, char *word) //two targets
   return 0;
 }
 
+// DIAGONAL STRING/WORD MATCHER
+int d_contain(char *string, char *word) //two targets
+{
+  while (1) {
+    if ((*string != *word) || (*string == '\n' && *word == '\n')){ // if the string is no longer the same as the word
+      return ((*word == '\n')); // return true if dictionary word is new line, false if it isn't, functionality same as h_contain
+    }
+    string = string + number_of_cols + 1 + 1; // increment string and word pointers (+1 for newline char too, +1 for diagonality)
+//  if (string > grid+total_grid_chars) {return 0;} // Turns out that this is unnecessary
+    word++;
+  }
+  return 0;
+}
+
 // this functions finds all of the VERTICAL matches in the grid
 void strfind()
 {
@@ -135,6 +149,18 @@ void strfind()
           print_int(col); // print that id number
           print_char(' ');
           print_char('V');
+          print_char(' ');
+          print_word(dictionary_word); // print the word that is there
+          print_char(' ');
+          print_char('\n');
+          found++; // found at least one word, so increment found
+          }
+        if (d_contain(grid + grid_idx, dictionary_word)) { // if VERTICAL WORD found, print
+          print_int(row);
+          print_char(',');
+          print_int(col); // print that id number
+          print_char(' ');
+          print_char('D');
           print_char(' ');
           print_word(dictionary_word); // print the word that is there
           print_char(' ');
