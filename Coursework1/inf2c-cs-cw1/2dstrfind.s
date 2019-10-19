@@ -200,43 +200,62 @@ FINISH_ROW_CALC:
 strfind:
         move $t0, $0                    # int idx = 0
         move $t1, $0                    # int grid_idx = 0
+        move $s3, $0                    # int found = 0
  	# Let t3 be dictionary word pointer, equivalent to char *word
+ 	
  	
 FOR_EACH_DICT_WORD:                     # for(idx = 0; idx < dict_num_words; idx ++) - label for this purpose
         sll $t2, $s0, 2                 # Multiply total number of word in dictionary by 4
         bge  $t0, $t2, END              # If exhausted dictionary words, end for loop, branch to END for final checks on found variable
+        
+        addi $s6, $0, -1 # int col = -1
+        addi $s7, $0, 0 # int row = -1
         
         addi $t0, $t0, 4                # Prepare next dictionary_word index for next loop NEXT TIME                                	                 	                                	                 
         move $t1, $0                    # Set grid_idx = 0, ready to be iterated through
         lw $t3, dictionary_idx($t0)     # Load dictionary index
         la $t4, dictionary              # Load address of base of dictionary
         add $s4, $t3, $t4               # dictionary_word = dictionary + dictionary_idx[idx]
-        
+      
 WHILE_NOT_END_OF_GRID:                  # while(grid[grid_idx] != '\0')
         la $t5, grid                    # Load address of base of grid
         add $s5, $t5, $t1               # grid + grid_idx
         lb $t9, ($s5)                   # Load grid character to check if iterated through the entire grid yet
+        beq $t9, '\n', LOOP_GRID
         beqz $t9, FOR_EACH_DICT_WORD    # If character is \0 then break to FOR_EACH_DICT_WORD, finishes while loop
+        addi $s6, $s6, 1 # col++
 
         addi $sp,$sp,-4                 # POP the current address register to the stack
         sw $ra,0($sp)
-        jal contain                     # if (contain(grid + grid_idx, word)) - call contain procedure on s5 and s6 registers
+        jal h_contain                     # if (contain(grid + grid_idx, word)) - call contain procedure on s5 and s6 registers
         lw $ra,0($sp)                   # PUSH back the previous address register to the stack
         addi $sp, $sp, 4
+        beq $v1, 1, FOUND_HORIZONTAL_WORD          # if (contain(grid + grid_idx,word) evaulates to true, ie: a word has been found, branch to FOUND_WORD
 
-        beq $v1, 1, FOUND_WORD          # if (contain(grid + grid_idx,word) evaulates to true, ie: a word has been found, branch to FOUND_WORD
 RESUME_NOT_END_OF_GRID:                 # Continue to find all the matches
         addi $t1, $t1, 1                # grid_idx++               
         j WHILE_NOT_END_OF_GRID         # Increase grid index and continue loop
 	
-FOUND_WORD:                             # if (contain(grid + grid_idx,word), do:
+FOUND_HORIZONTAL_WORD:                             # if (contain(grid + grid_idx,word), do:
         li  $v0, 1                      # Set syscall to print integer  
-        add $a0, $0, $t1                # Add grid_idx to be printed
+        add $a0, $0, $s7 # Add row to be printed
         syscall                         # print_int(grid_idx)
         
         li  $v0, 11                     # Set syscall to print char   
-        addi $a0, $0, 32                # Add ASCII for space to be printed
+        addi $a0, $0, ',' # , to print
         syscall                         # print_char(' ')
+        
+        li  $v0, 1                      # Set syscall to print integer  
+        add $a0, $0, $s6 # Add col to be printed
+        syscall                         # print_int(grid_idx)
+        
+        li  $v0, 11                     # Set syscall to print char   
+        addi $a0, $0, ' ' # , to print
+        syscall                         # print_char(' ')
+        addi $a0, $0, 'H'  
+        syscall
+        addi $a0, $0, ' '
+        syscall
         
         lw $a3, dictionary_idx($t0)     # Load the index number that the word was found into the a3 register for printing 
         addi $sp,$sp,-4                 # POP the current address register to the stack
@@ -250,25 +269,33 @@ FOUND_WORD:                             # if (contain(grid + grid_idx,word), do:
         
         addi $s3, $s3, 1                # found++ - Increment found to indicate at least one word has been found	               
         j RESUME_NOT_END_OF_GRID        # Loop back to continue searching through grid
-	
+
+LOOP_GRID:
+        addi $s7, $s7, 1 # row++
+        addi $s6, $0, -1
+        j RESUME_NOT_END_OF_GRID  	
 #------------------------------------------------------------------
 # CONTAIN FUNCTION
 #------------------------------------------------------------------ 
  
-contain:
+h_contain:
         # function to see if the string contains the (\n terminated) word
         move $t9, $s4 # temporary copy of word pointer
 	move $t8, $s5 # temporary copy of string pointer
-CONTAIN_LOOP:
+H_CONTAIN_LOOP:
         lb $t7, ($t9)                   # *word - dereference pointer of dictionary word - store character of word in t9
         lb $t6, ($t8)                   # *string - dereference pointer of grid word - store character of string in t8
         
-        bne $t7, $t6, IF_CHARACTERS_NOT_EQUAL # if (*string != *word)
+        bne $t7, $t6, H_IF_CHARACTERS_NOT_EQUAL # if (*string != *word)
+        beq $t7, '\n', H_WORD_NEW_LINE
         addi $t9, $t9, 1                # word++ increase word character pointer
         addi $t8, $t8, 1                # string++ increase string character pointer
-        j CONTAIN_LOOP                  # while(1)
-	
-IF_CHARACTERS_NOT_EQUAL:
+        j H_CONTAIN_LOOP                  # while(1)
+
+H_WORD_NEW_LINE:
+	beq $t6, '\n', H_IF_CHARACTERS_NOT_EQUAL
+	j H_CONTAIN_LOOP	
+H_IF_CHARACTERS_NOT_EQUAL:
         bne $t7, '\n', SET_V1_0         # *word != '\n', break to SET_V1_0
         beq $t7, '\n', SET_V1_1         # *word == '\n', break to SET_V1_1
 SET_V1_1:
