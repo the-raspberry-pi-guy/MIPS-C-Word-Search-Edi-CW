@@ -136,8 +136,11 @@ END_LOOP2:
  
         move $t0, $0                    # int dict_idx = 0
         move $t1, $0                    # int start_idx = 0
-        move $s7, $0                    # int dict_num_words = 0
+        move $s0, $0                    # int dict_num_words = 0
                                         # To keep track of total number of words in dictionary
+ 
+        addi $s1, $0, 1 # int number_of_rows =1
+        move $s2, $0 # int number_of_cols = 0 
  
  # storing starting index of each word in the dictionary
         move $t2, $0                    # idx = 0
@@ -161,9 +164,37 @@ INDEX_DICT:
         j RESUME_DICT_LOOP              # Resume the indexing loop
 
 AFTER_DICT:
-        move $s7, $t0                   # dict_num_words = dict_idx - store total dictionary words
+        move $s0, $t0                   # dict_num_words = dict_idx - store total dictionary words
         jal strfind                     # strfind() - jump to the strfind() procedure 
  	
+ 	move $t0, $0 # int i = 0
+        move $t1, $0 # int j = 0
+        
+COL_CALC_LOOP:        
+        la $t2, grid
+        add $t2, $t2, $t0
+        lb $t2, ($t2)
+        beq $t2, '\n', FINISH_COL_CALC
+        addi $s2, $s2, 1
+        addi $t0, $t0, 1
+        j COL_CALC_LOOP
+FINISH_COL_CALC:
+
+ROW_CALC_LOOP:
+        la $t2, grid
+        add $t2, $t2, $t1
+        lb $t2, ($t2)
+        beqz $t2, FINISH_ROW_CALC
+        beq $t2, '\n', INCREMENT_ROW
+        addi $t1, $t1, 1
+        j ROW_CALC_LOOP
+INCREMENT_ROW:
+        addi $s1, $s1, 1
+        addi $t1, $t1, 1
+        j ROW_CALC_LOOP
+   
+FINISH_ROW_CALC:     
+        jal strfind                     # strfi
  
 #------------------------------------------------------------------
 # STRFIND FUNCTION - find all matching dictionary words in a string
@@ -176,10 +207,10 @@ strfind:
  	# Let t3 be dictionary word pointer, equivalent to char *word
  	
 FOR_EACH_DICT_WORD:                     # for(idx = 0; idx < dict_num_words; idx ++) - label for this purpose
-        sll $t5, $s7, 2                 # Multiply total number of word in dictionary by 4
+        sll $t5, $s0, 2                 # Multiply total number of word in dictionary by 4
         bge  $t0, $t5, END              # If exhausted dictionary words, end for loop, branch to END for final checks on found variable
         
-        addi $t0, $t0, 4                # Prepare next dictionary_word index for next loop NEXT TIME                                	                 	                                	                 
+        addi $t0, $t0, 4                # Prepare next dictionary_word index for next loop NEXT TIME                                	                 	                                	                 
         move $t1, $0                    # Set grid_idx = 0, ready to be iterated through
         lw $t3, dictionary_idx($t0)     # Load dictionary index
         la $t6, dictionary              # Load address of base of dictionary
@@ -248,7 +279,7 @@ SET_V1_1:
         addi $v1, $0, 1                 # if *word is new line then return 1 (to v1 register)
         jr $ra                          # return - jump back to the return address in strfind
 SET_V1_0:
-        add $v1, $0, $0                 # if word is not new line then return 0 (to v1 register)
+        add $v1, $0, $0                 # if word is not new line then return 0 (to v1 register)
         jr $ra                          # return - jump back to the return address in strfind
  
 #------------------------------------------------------------------
