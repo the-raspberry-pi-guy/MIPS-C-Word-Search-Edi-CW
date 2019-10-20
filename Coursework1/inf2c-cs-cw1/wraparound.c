@@ -102,6 +102,7 @@ int h_contain(char *string, char *word) //two targets
 int v_contain(char *string, char *word) //two targets
 {
   int looped = 0;
+  int temp_row = current_row;
 
   while (1) {
     if (*string != *word){ // if the string is no longer the same as the word
@@ -109,8 +110,8 @@ int v_contain(char *string, char *word) //two targets
     }
 
     // +1 for 0-3 fix, +1 as newline before EOF
-    if (((current_row + 1) == number_of_rows) && (looped == 0)) { // if on the last row
-      string = string - (current_row * number_of_cols) - current_row; // set string to the same col on the first row
+    if (((temp_row + 1) == number_of_rows) && (looped == 0)) { // if on the last row
+      string = string - (temp_row * number_of_cols) - temp_row; // set string to the same col on the first row
       looped = 1;
     }
     else {
@@ -118,7 +119,7 @@ int v_contain(char *string, char *word) //two targets
     }
 
     word++; // increment word
-
+    temp_row++;
   }
   return 0;
 }
@@ -131,6 +132,8 @@ int d_contain(char *string, char *word) //two targets
       return ((*word == '\n')); // return true if dictionary word is new line, false if it isn't, functionality same as h_contain
     }
     string = string + number_of_cols + 1 + 1; // increment string pointer by an entire row (+1 for newline char too, +1 for diagonality)
+
+    
     word++; // increment word
   }
   return 0;
