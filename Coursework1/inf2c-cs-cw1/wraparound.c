@@ -129,6 +129,7 @@ int d_contain(char *string, char *word) //two targets
 {
   char *word_copy = word;
   int temp_row = current_row;
+  int temp_col = current_col;
 
   while (1) {
     if ((*string != *word) || (*string == '\n' && *word == '\n')){ // if the string is no longer the same as the word
@@ -138,13 +139,17 @@ int d_contain(char *string, char *word) //two targets
 
     if ((string > end_address) || (*string == '\n')) {
       string = string - number_of_cols - 1 - 1; // undo the increment
-      string = string - ((temp_row * number_of_cols) + temp_row + temp_row);
-      if ((string < grid)) {
-        string = string + number_of_cols + 1 + 1;
+      string = string - ((temp_row * number_of_cols) + temp_row + temp_row); // skip back diagonally
+      
+      if (temp_col+1 < number_of_rows) { // for the lower left corner of the grid
+        string = string + (number_of_rows-(temp_col+1))*(number_of_cols + 1 + 1);
+        temp_col = 0;
       }
+
       temp_row = 0;
     }
 
+    temp_col++;
     temp_row++;
     word++; // increment word
   }
