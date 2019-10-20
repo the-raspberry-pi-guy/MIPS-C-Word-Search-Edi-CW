@@ -139,11 +139,13 @@ int d_contain(char *string, char *word) //two targets
     if ((string > end_address) || (*string == '\n')) {
       string = string - number_of_cols - 1 - 1; // undo the increment
       string = string - ((temp_row * number_of_cols) + temp_row + temp_row);
+      if ((string < grid)) {
+        string = string + number_of_cols + 1 + 1;
+      }
       temp_row = 0;
     }
-    
-    temp_row++;
 
+    temp_row++;
     word++; // increment word
   }
   return 0;
