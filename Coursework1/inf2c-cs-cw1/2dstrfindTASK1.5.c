@@ -129,6 +129,9 @@ void strfind()
       while (grid[grid_idx] != '\n') { // while not the end of the current row
         col++; // increment column as going through character by character (column by column)
         if (h_contain(grid + grid_idx, dictionary_word)) { // if HORIZONTAL WORD found, print it out with the details
+          if (found > 0) { // Only a print a new line if a word has been found (to stop wasted terminal line)
+            print_char('\n');
+          }
           print_int(row);
           print_char(',');
           print_int(col); 
@@ -137,10 +140,12 @@ void strfind()
           print_char(' ');
           print_word(dictionary_word); // print the word that is there
           print_char(' ');
-          print_char('\n');
           found++; // found at least one word, so increment found
           }
         if (v_contain(grid + grid_idx, dictionary_word)) { // if VERTICAL WORD found, print it out with the details
+          if (found > 0) { // Only a print a new line if a word has been found (to stop wasted terminal line)
+            print_char('\n');
+          }
           print_int(row);
           print_char(',');
           print_int(col); 
@@ -149,10 +154,12 @@ void strfind()
           print_char(' ');
           print_word(dictionary_word); // print the word that is there
           print_char(' ');
-          print_char('\n');
           found++; // found at least one word, so increment found
           }
         if (d_contain(grid + grid_idx, dictionary_word)) { // if DIAGONAL WORD found, print it out with the details
+          if (found > 0) { // Only a print a new line if a word has been found (to stop wasted terminal line)
+            print_char('\n');
+          }
           print_int(row);
           print_char(',');
           print_int(col);
@@ -161,7 +168,6 @@ void strfind()
           print_char(' ');
           print_word(dictionary_word); // print the word that is there
           print_char(' ');
-          print_char('\n');
           found++; // found at least one word, so increment found
           }
         grid_idx++; // increment the grid index to keep looking through the grid
