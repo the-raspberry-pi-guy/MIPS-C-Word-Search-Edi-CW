@@ -193,7 +193,7 @@ INCREMENT_ROW:
         j RETURN_INTO_ROW_CALC_LOOP
    
 FINISH_ROW_CALC:     
-        addi $s1, $s1, -1 # number_of_rows-- (get rid of empty row)
+        addi $s1, $s1, -1               # number_of_rows-- (get rid of empty row)
         
         jal strfind                     # strfind() - jump to the strfind() procedure 
  	
@@ -224,11 +224,11 @@ FOR_EACH_DICT_WORD:                     # for(idx = 0; idx < dict_num_words; idx
       
 WHILE_NOT_END_OF_GRID:                  # while(grid[grid_idx] != '\0')
         la $t5, grid                    # Load address of base of grid
-        mult $s1, $s2
-        mflo $t9
+        mult $s1, $s2                   # Following lines are the process to store the end address of the grid
+        mflo $t9                        # Takes into account the newline and EOF chars
         add $t9, $t9, $s1
         addi $t9, $t9, 1
-        add $s4, $t5, $t9 # store end_address
+        add $s4, $t5, $t9               # end_address = grid + (number_of_rows*number_of_cols) + number_of_rows + 1
         add $a3, $t5, $t1               # grid + grid_idx
         lb $t9, ($a3)                   # Load grid character to check if iterated through the entire grid yet
         beq $t9, '\n', LOOP_GRID        # while (grid[grid_idx] != '\n') - incorporates this functionality
@@ -261,7 +261,7 @@ RESUME_NOT_END_OF_GRID:                 # Continue to find all the matches
         j WHILE_NOT_END_OF_GRID         # Increase grid index and continue loop
 	
 FOUND_HORIZONTAL_WORD:                  # if (h_contain(grid + grid_idx,word), do:
-        bgt $s3, $0, H_NEWLINE
+        bgt $s3, $0, H_NEWLINE          # if (found > 0) { // Only a print a new line if a word has been found (to stop wasted terminal line)
         j H_NO_NEWLINE
 H_NEWLINE:
         li  $v0, 11                     # Set syscall to print char           
@@ -296,8 +296,8 @@ H_NO_NEWLINE:
         move $v1, $0                    # Reset the function word return flag to 0
         j VERTICAL_CHECK                # Loop back to continue searching through grid
 
-FOUND_VERTICAL_WORD:                    #if (v_contain(grid + grid_idx,word), do:
-        bgt $s3, $0, V_NEWLINE
+FOUND_VERTICAL_WORD:                    # if (v_contain(grid + grid_idx,word), do:
+        bgt $s3, $0, V_NEWLINE          # if (found > 0) { // Only a print a new line if a word has been found (to stop wasted terminal line)
         j V_NO_NEWLINE
 V_NEWLINE:
         li  $v0, 11                     # Set syscall to print char           
@@ -333,7 +333,7 @@ V_NO_NEWLINE:
         j DIAGONAL_CHECK
 
 FOUND_DIAGONAL_WORD:                    # if (d_contain(grid + grid_idx,word), do:
-        bgt $s3, $0, D_NEWLINE
+        bgt $s3, $0, D_NEWLINE          # if (found > 0) { // Only a print a new line if a word has been found (to stop wasted terminal line)
         j D_NO_NEWLINE
 D_NEWLINE:
         li  $v0, 11                     # Set syscall to print char           
@@ -377,7 +377,7 @@ LOOP_GRID:                              # Completes functionality of while (grid
 # CONTAIN FUNCTIONS
 #------------------------------------------------------------------ 
  
-# HORIZONTAL CONTAIN
+# HORIZONTAL CONTAIN W. WRAP AROUND
 h_contain:
         # function to see if the string contains the (\n terminated) word
         move $t9, $a2                   # temporary copy of word pointer
@@ -386,28 +386,28 @@ H_CONTAIN_LOOP:
         lb $t7, ($t9)                   # *word - dereference pointer of dictionary word - store character of word in t9
         lb $t6, ($t8)                   # *string - dereference pointer of grid word - store character of string in t8
         
-        bne $t7, $t6, H_CHAR_NE # if (*string != *word)....
+        bne $t7, $t6, H_CHAR_NE         # if (*string != *word)....
 RESUME_H_CONTAIN_FROM_CHAR_NE:
         beq $t7, '\n', H_WORD_NEW_LINE  # OR if (*string == '\n' && *word == '\n')....
-        beq $t6, '\n', H_WRAP_AROUND_IF1
+        beq $t6, '\n', H_WRAP_AROUND_IF1# if ((*string == '\n') && (*word != '\n'))...
 RESUME_H_CONTAIN_FROM_WRAP:
         addi $t9, $t9, 1                # word++ increase word character pointer
         addi $t8, $t8, 1                # string++ increase string character pointer to point at next char
         j H_CONTAIN_LOOP                # while(1)
 
 H_WRAP_AROUND_IF1:
-        bne $t7, '\n', H_WRAP_AROUND_IF2
+        bne $t7, '\n', H_WRAP_AROUND_IF2# if ((*string == '\n') && (*word != '\n'))...
         j RESUME_H_CONTAIN_FROM_WRAP
 H_WRAP_AROUND_IF2:
-        sub $t8, $t8, $s2 # string = string - number_of_cols
-        subi $t8, $t8, 1 # string = string - number_of_cols - 1
-        subi $t9, $t9, 1 # word--
+        sub $t8, $t8, $s2               # string = string - number_of_cols
+        subi $t8, $t8, 1                # string = string - number_of_cols - 1
+        subi $t9, $t9, 1                # word--
         j RESUME_H_CONTAIN_FROM_WRAP
 
-H_WORD_NEW_LINE: #OR if (*string == '\n' && *word == '\n')
+H_WORD_NEW_LINE:                        # OR if (*string == '\n' && *word == '\n')
 	beq $t6, '\n', H_CHAR_NE_AND_STR_NOT_NEWL_OR_WRD_STR_NEWLINE # Checks the other way round to ensure both *string and *word equal newline character
 	j H_CONTAIN_LOOP	
-H_CHAR_NE: # if ((*string != *word) && (*string != '\n'))
+H_CHAR_NE:                              # if ((*string != *word) && (*string != '\n'))
         bne $t6, '\n', H_CHAR_NE_AND_STR_NOT_NEWL_OR_WRD_STR_NEWLINE
         j RESUME_H_CONTAIN_FROM_CHAR_NE
 H_CHAR_NE_AND_STR_NOT_NEWL_OR_WRD_STR_NEWLINE:
@@ -419,83 +419,85 @@ v_contain:
         move $t9, $a2                   # temporary copy of word pointer
 	move $t8, $a3                   # temporary copy of string pointer
 	
-	move $t5, $s7 # int temp_row = current_row
-	move $t4, $0 # int looped = 0
+	move $t5, $s7                   # int temp_row = current_row - to temporarily iterate through in this function
+	move $t4, $0                    # int looped = 0 - to record whether the grid has been looped around once
 	
 V_CONTAIN_LOOP:
         lb $t7, ($t9)                   # *word - dereference pointer of dictionary word - store character of word in t9
         lb $t6, ($t8)                   # *string - dereference pointer of grid word - store character of string in t8
         
-        bne $t7, $t6, V_IF_CHARS_NE # if (*string != *word)
-        addi $t3, $t5, 1
-        beq $t3, $s1, V_ON_END_ROW
+        bne $t7, $t6, V_IF_CHARS_NE     # if (*string != *word)
+        addi $t3, $t5, 1                # temp_row + 1
+        beq $t3, $s1, V_ON_END_ROW      # if (((temp_row +1) == number_of_rows) && ...)
 V_DONT_LOOP:            
         add $t8, $t8, $s2               # Add number of cols to string to index it to the character directly below
         addi $t8, $t8, 1                # string = string + number_of_cols + 1; Add a 1 to the index to account for the \n character we don't want
 V_RESUME_CONTAIN_LOOP:        
         addi $t9, $t9, 1                # word++ increase word character pointer
-        addi $t5, $t5, 1 # temp_row++
+        addi $t5, $t5, 1                # temp_row++
         j V_CONTAIN_LOOP                # while(1)
         
-V_ON_END_ROW:
+V_ON_END_ROW:                           # # if (((temp_row +1) == number_of_rows) && (looped == 0))
         beqz $t4, V_ON_END_ROW_AND_NOT_LOOPED
         j V_DONT_LOOP
 V_ON_END_ROW_AND_NOT_LOOPED:
-       	mult $t5, $s2 # temp_row * number_of_cols
+       	mult $t5, $s2                   # temp_row * number_of_cols
        	mflo $t2
-       	add $t2, $t2, $t5
-       	sub $t8, $t8, $t2
-       	addi $t4, $0, 1
+       	add $t2, $t2, $t5               # (temp_row * number_of_cols) - temp_row
+       	sub $t8, $t8, $t2               # string = string - (temp_row * number_of_cols) - temp_row
+       	addi $t4, $0, 1                 # looped = 1
         j V_RESUME_CONTAIN_LOOP
 
 V_IF_CHARS_NE:
         bne $t7, '\n', SET_V1_0         # *word != '\n', break to SET_V1_0
         beq $t7, '\n', SET_V1_1         # *word == '\n', break to SET_V1_1
 
-# DIAGONAL CONTAIN
+# DIAGONAL CONTAIN W. WRAP AROUND
 d_contain:
         move $t9, $a2                   # temporary copy of word pointer
         move $t8, $a3                   # temporary copy of string pointer
 
-        move $t5, $s7 # int temp_row = current_row
-        move $t4, $s6 # int temp_col = current_col
+        move $t5, $s7                   # int temp_row = current_row - temporary copies of both the row and column to iterate through inside the function
+        move $t4, $s6                   # int temp_col = current_col
 
 D_CONTAIN_LOOP:
         lb $t7, ($t9)                   # *word - dereference pointer of dictionary word - store character of word in t9
         lb $t6, ($t8)                   # *string - dereference pointer of grid word - store character of string in t8
         
-        bne $t7, $t6, D_IF_CHARACTERS_NOT_EQUAL # if (*string != *word)
+        bne $t7, $t6, D_IF_CHARACTERS_NOT_EQUAL# if (*string != *word)...
         beq $t7, '\n', D_WORD_NEW_LINE  # OR if (*string == '\n' && *word == '\n')
 D_NOT_NEW_LINE_RESUME:        
         add $t8, $t8, $s2               # Add number of cols to string to index it to character directly below
         addi $t8, $t8, 2                # string = string + number_of_cols + 1 + 1 - add 2 to the index to compensate for newline character and for diagonalisation
         
-        bgt $t8, $s4, D_STR_GT_END_ADD_OR_STR_NL
-        beq $t6, '\n', D_STR_GT_END_ADD_OR_STR_NL
+        bgt $t8, $s4, D_STR_GT_END_ADD_OR_STR_NL# if ((string > end_address) ...)
+        beq $t6, '\n', D_STR_GT_END_ADD_OR_STR_NL# OR if (*string == '\n')
 D_RESUME_CONTAIN_LOOP_AFTER_WRAP:        
-        addi $t5, $t5, 1 # temp_row++
-        addi $t4, $t4, 1 # temp_col++
+        addi $t5, $t5, 1                # temp_row++
+        addi $t4, $t4, 1                # temp_col++
         addi $t9, $t9, 1                # word++ increase word character pointer
         j D_CONTAIN_LOOP                # while(1)
 
 D_STR_GT_END_ADD_OR_STR_NL:
-        subi $t8, $t8, 2 # string = string - number_of_cols -1 -1        
-        sub $t8, $t8, $s2 # string = string - number_of_cols
-        mult $t5, $s2 # temp_row * number_of_cols
-       	mflo $t2
-       	add $t2, $t2, $t5 # (temp_row * number_of_cols) + temp_row
-       	add $t2, $t2, $t5 # (temp_row * number_of_cols) + temp_row + temp_row
-       	sub $t8, $t8, $t2
-       	addi $t3, $t4, 1 # temp_col + 1
-       	blt $t3, $s1, D_LOWER_LEFT_GRID
+        subi $t8, $t8, 2                # string = string -1 -1        
+        sub $t8, $t8, $s2               # string = string - number_of_cols -1 -1 // undoing the previous increment
+        mult $t5, $s2                   # temp_row * number_of_cols
+       	mflo $t2                        # Process to skip back diagonally: (number_of_rows-(temp_col+1))*(number_of_cols +1 +1)
+       	add $t2, $t2, $t5               # (temp_row * number_of_cols) + temp_row
+       	add $t2, $t2, $t5               # (temp_row * number_of_cols) + temp_row + temp_row
+       	sub $t8, $t8, $t2               # string = string + (number_of_rows-(temp_col+1))*(number_of_cols + 1 + 1); // only skip back the required number of rows
+       	                                # Now checking and adjusting if in the lower left corner of the grid
+       	addi $t3, $t4, 1                # temp_col + 1
+       	blt $t3, $s1, D_LOWER_LEFT_GRID # if (temp_col+1 < number_of_rows) { // if in the lower left corner of the grid
        	j D_RESUME_CONTAIN_LOOP_AFTER_WRAP
 D_LOWER_LEFT_GRID:
-        sub $t2, $s1, $t3 # number_of_rows - (temp_col+1)
-        add $t3, $0, $s2 # number_of_cols
-        addi $t3, $t3, 2 # number_of_cols +1 +1
-        mult $t3, $t2 # (number_of_rows-(temp_col+1))*(number_of_cols + 1 + 1)
+                                        # Composing the sum to skip back the required number of rows
+        sub $t2, $s1, $t3               # number_of_rows - (temp_col+1)
+        add $t3, $0, $s2                # number_of_cols
+        addi $t3, $t3, 2                # number_of_cols +1 +1
+        mult $t3, $t2                   # (number_of_rows-(temp_col+1))*(number_of_cols + 1 + 1)
         mflo $t3
-        add $t8, $t8, $t3
+        add $t8, $t8, $t3               # string = string + (number_of_rows-(temp_col+1))*(number_of_cols + 1 + 1); // only skip back the required number of rows
         j D_RESUME_CONTAIN_LOOP_AFTER_WRAP
         
 D_WORD_NEW_LINE:
@@ -557,4 +559,3 @@ main_end:
 #----------------------------------------------------------------
 # END OF CODE
 #----------------------------------------------------------------
-

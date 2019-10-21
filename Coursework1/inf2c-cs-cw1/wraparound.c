@@ -134,10 +134,11 @@ int d_contain(char *string, char *word) //two targets
     if ((*string != *word) || (*string == '\n' && *word == '\n')){ // if the string is no longer the same as the word
       return ((*word == '\n')); // return true if dictionary word is new line, false if it isn't, functionality same as h_contain
     }
+    
     string = string + number_of_cols + 1 + 1; // increment string pointer by an entire row (+1 for newline char too, +1 for diagonality)
 
     if ((string > end_address) || (*string == '\n')) { // if gone past the end of the grid, or landed on a new line character
-      string = string - number_of_cols - 1 - 1; // undo the increment
+      string = string - number_of_cols - 1 - 1; // undo the previous increment
       string = string - ((temp_row * number_of_cols) + temp_row + temp_row); // skip back diagonally
       
       if (temp_col+1 < number_of_rows) { // if in the lower left corner of the grid
