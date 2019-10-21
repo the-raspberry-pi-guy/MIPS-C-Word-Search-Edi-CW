@@ -418,37 +418,89 @@ H_CHAR_NE_AND_STR_NOT_NEWL_OR_WRD_STR_NEWLINE:
 v_contain:
         move $t9, $a2                   # temporary copy of word pointer
 	move $t8, $a3                   # temporary copy of string pointer
+	
+	move $t5, $s7 # int temp_row = current_row
+	move $t4, $0 # int looped = 0
+	
 V_CONTAIN_LOOP:
         lb $t7, ($t9)                   # *word - dereference pointer of dictionary word - store character of word in t9
         lb $t6, ($t8)                   # *string - dereference pointer of grid word - store character of string in t8
         
-        bne $t7, $t6, V_IF_CHARACTERS_NOT_EQUAL # if (*string != *word)
-        addi $t9, $t9, 1                # word++ increase word character pointer
+        bne $t7, $t6, V_IF_CHARS_NE # if (*string != *word)
+        addi $t3, $t5, 1
+        beq $t3, $s1, V_ON_END_ROW
+V_DONT_LOOP:            
         add $t8, $t8, $s2               # Add number of cols to string to index it to the character directly below
         addi $t8, $t8, 1                # string = string + number_of_cols + 1; Add a 1 to the index to account for the \n character we don't want
+V_RESUME_CONTAIN_LOOP:        
+        addi $t9, $t9, 1                # word++ increase word character pointer
+        addi $t5, $t5, 1 # temp_row++
         j V_CONTAIN_LOOP                # while(1)
-V_IF_CHARACTERS_NOT_EQUAL:
+        
+V_ON_END_ROW:
+        beqz $t4, V_ON_END_ROW_AND_NOT_LOOPED
+        j V_DONT_LOOP
+V_ON_END_ROW_AND_NOT_LOOPED:
+       	mult $t5, $s2 # temp_row * number_of_cols
+       	mflo $t2
+       	add $t2, $t2, $t5
+       	sub $t8, $t8, $t2
+       	addi $t4, $0, 1
+        j V_RESUME_CONTAIN_LOOP
+
+V_IF_CHARS_NE:
         bne $t7, '\n', SET_V1_0         # *word != '\n', break to SET_V1_0
         beq $t7, '\n', SET_V1_1         # *word == '\n', break to SET_V1_1
 
 # DIAGONAL CONTAIN
 d_contain:
         move $t9, $a2                   # temporary copy of word pointer
-	move $t8, $a3                   # temporary copy of string pointer
+        move $t8, $a3                   # temporary copy of string pointer
+
+        move $t5, $s7 # int temp_row = current_row
+        move $t4, $s6 # int temp_col = current_col
+
 D_CONTAIN_LOOP:
         lb $t7, ($t9)                   # *word - dereference pointer of dictionary word - store character of word in t9
         lb $t6, ($t8)                   # *string - dereference pointer of grid word - store character of string in t8
         
         bne $t7, $t6, D_IF_CHARACTERS_NOT_EQUAL # if (*string != *word)
         beq $t7, '\n', D_WORD_NEW_LINE  # OR if (*string == '\n' && *word == '\n')
-        addi $t9, $t9, 1                # word++ increase word character pointer
+D_NOT_NEW_LINE_RESUME:        
         add $t8, $t8, $s2               # Add number of cols to string to index it to character directly below
         addi $t8, $t8, 2                # string = string + number_of_cols + 1 + 1 - add 2 to the index to compensate for newline character and for diagonalisation
+        
+        bgt $t8, $s4, D_STR_GT_END_ADD_OR_STR_NL
+        beq $t6, '\n', D_STR_GT_END_ADD_OR_STR_NL
+D_RESUME_CONTAIN_LOOP_AFTER_WRAP:        
+        addi $t5, $t5, 1 # temp_row++
+        addi $t4, $t4, 1 # temp_col++
+        addi $t9, $t9, 1                # word++ increase word character pointer
         j D_CONTAIN_LOOP                # while(1)
+
+D_STR_GT_END_ADD_OR_STR_NL:
+        subi $t8, $t8, 2 # string = string - number_of_cols -1 -1        
+        sub $t8, $t8, $s2 # string = string - number_of_cols
+        mult $t5, $s2 # temp_row * number_of_cols
+       	mflo $t2
+       	add $t2, $t2, $t5 # (temp_row * number_of_cols) + temp_row
+       	add $t2, $t2, $t5 # (temp_row * number_of_cols) + temp_row + temp_row
+       	sub $t8, $t8, $t2
+       	addi $t3, $t4, 1 # temp_col + 1
+       	blt $t3, $s1, D_LOWER_LEFT_GRID
+       	j D_RESUME_CONTAIN_LOOP_AFTER_WRAP
+D_LOWER_LEFT_GRID:
+        sub $t2, $s1, $t3 # number_of_rows - (temp_col+1)
+        add $t3, $0, $s2 # number_of_cols
+        addi $t3, $t3, 2 # number_of_cols +1 +1
+        mult $t3, $t2 # (number_of_rows-(temp_col+1))*(number_of_cols + 1 + 1)
+        mflo $t3
+        add $t8, $t8, $t3
+        j D_RESUME_CONTAIN_LOOP_AFTER_WRAP
         
 D_WORD_NEW_LINE:
 	beq $t6, '\n', D_IF_CHARACTERS_NOT_EQUAL # Checks the other way round to ensure both *string and *word equal newline character
-	j H_CONTAIN_LOOP
+	j D_NOT_NEW_LINE_RESUME
 D_IF_CHARACTERS_NOT_EQUAL:
         bne $t7, '\n', SET_V1_0         # *word != '\n', break to SET_V1_0
         beq $t7, '\n', SET_V1_1         # *word == '\n', break to SET_V1_1
