@@ -9,7 +9,7 @@
 *
 ***********************************************************************/
 // ==========================================================================
-// 1D String Finder
+// 1D String Finder - ALL MATCHES
 // ==========================================================================
 // Finds the [first] matching word from dictionary in the grid
 
@@ -59,7 +59,6 @@ int dictionary_idx[MAX_DICTIONARY_WORDS];
 // number of words in the dictionary
 int dict_num_words = 0;
 
-
 // function to print found word
 void print_word(char *word)
 {
@@ -92,7 +91,7 @@ void strfind()
   char *dictionary_word;
   int idx = 0;
   int grid_idx = 0;
-  int found = 0; // Variable store whether a word has been found or not
+  int found = 0; // Variable to store whether a word has been found or not
   for(idx = 0; idx < dict_num_words; idx ++) { // for each word in the dictionary, check if there is a match
     grid_idx = 0; // re-index to the start of the grid when a new dictionary word is chosen
     dictionary_word = dictionary + dictionary_idx[idx]; // new dictionary word address
@@ -186,7 +185,6 @@ int main (void)
   fclose(dictionary_file);
   //////////////////////////End of reading////////////////////////
   ///////////////You can add your code here!//////////////////////
-
 
   // storing the starting index of each word in the dictionary
   idx = 0;
