@@ -256,6 +256,13 @@ RESUME_NOT_END_OF_GRID:                 # Continue to find all the matches
         j WHILE_NOT_END_OF_GRID         # Increase grid index and continue loop
 	
 FOUND_HORIZONTAL_WORD:                  # if (h_contain(grid + grid_idx,word), do:
+        bgt $s3, $0, H_NEWLINE
+        j H_NO_NEWLINE
+H_NEWLINE:
+        li  $v0, 11                     # Set syscall to print char           
+        addi $a0, $0, 10                # Add ASCII for new line to be printed
+        syscall                         # print_char('\n')
+H_NO_NEWLINE:        
         li  $v0, 1                      # Set syscall to print integer  
         add $a0, $0, $s7                # Add row to be printed
         syscall                         # print_int(grid_idx)
@@ -280,14 +287,18 @@ FOUND_HORIZONTAL_WORD:                  # if (h_contain(grid + grid_idx,word), d
         lw $ra,0($sp)                   # PUSH back the previous address register to the stack
         addi $sp, $sp, 4
         
-        addi $a0, $0, 10                # Add ASCII for new line to be printed
-        syscall                         # print_char('\n')
-        
         addi $s3, $s3, 1                # found++ - Increment found to indicate at least one word has been found	               
         move $v1, $0                    # Reset the function word return flag to 0
         j VERTICAL_CHECK                # Loop back to continue searching through grid
 
 FOUND_VERTICAL_WORD:                    #if (v_contain(grid + grid_idx,word), do:
+        bgt $s3, $0, V_NEWLINE
+        j V_NO_NEWLINE
+V_NEWLINE:
+        li  $v0, 11                     # Set syscall to print char           
+        addi $a0, $0, 10                # Add ASCII for new line to be printed
+        syscall                         # print_char('\n')
+V_NO_NEWLINE:        
         li  $v0, 1                      # Set syscall to print integer  
         add $a0, $0, $s7                # Add row to be printed
         syscall                         # print_int(row)
@@ -312,14 +323,18 @@ FOUND_VERTICAL_WORD:                    #if (v_contain(grid + grid_idx,word), do
         lw $ra,0($sp)                   # PUSH back the previous address register to the stack
         addi $sp, $sp, 4
         
-        addi $a0, $0, 10                # Add ASCII for new line to be printed
-        syscall                         # print_char('\n')
-        
         addi $s3, $s3, 1                # found++ - Increment found to indicate at least one word has been found	               
         move $v1, $0                    # Reset the function word return flag to 0
         j DIAGONAL_CHECK
 
 FOUND_DIAGONAL_WORD:                    # if (d_contain(grid + grid_idx,word), do:
+        bgt $s3, $0, D_NEWLINE
+        j D_NO_NEWLINE
+D_NEWLINE:
+        li  $v0, 11                     # Set syscall to print char           
+        addi $a0, $0, 10                # Add ASCII for new line to be printed
+        syscall                         # print_char('\n')
+D_NO_NEWLINE:        
         li  $v0, 1                      # Set syscall to print integer  
         add $a0, $0, $s7                # Add row to be printed
         syscall                         # print_int(row)
@@ -343,9 +358,6 @@ FOUND_DIAGONAL_WORD:                    # if (d_contain(grid + grid_idx,word), d
         jal print_dictionary_word       # print_word(word) - jump to print_dictionary_word function, taking a3 as input
         lw $ra,0($sp)                   # PUSH back the previous address register to the stack
         addi $sp, $sp, 4
-        
-        addi $a0, $0, 10                # Add ASCII for new line to be printed
-        syscall                         # print_char('\n')
         
         addi $s3, $s3, 1                # found++ - Increment found to indicate at least one word has been found	               
         move $v1, $0                    # Reset function word return flag to 0
