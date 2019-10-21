@@ -224,6 +224,11 @@ FOR_EACH_DICT_WORD:                     # for(idx = 0; idx < dict_num_words; idx
       
 WHILE_NOT_END_OF_GRID:                  # while(grid[grid_idx] != '\0')
         la $t5, grid                    # Load address of base of grid
+        mult $s1, $s2
+        mflo $t9
+        add $t9, $t9, $s1
+        addi $t9, $t9, 1
+        add $s4, $t5, $t9 # store end_address
         add $a3, $t5, $t1               # grid + grid_idx
         lb $t9, ($a3)                   # Load grid character to check if iterated through the entire grid yet
         beq $t9, '\n', LOOP_GRID        # while (grid[grid_idx] != '\n') - incorporates this functionality
@@ -381,16 +386,31 @@ H_CONTAIN_LOOP:
         lb $t7, ($t9)                   # *word - dereference pointer of dictionary word - store character of word in t9
         lb $t6, ($t8)                   # *string - dereference pointer of grid word - store character of string in t8
         
-        bne $t7, $t6, H_IF_CHARACTERS_NOT_EQUAL # if (*string != *word)
-        beq $t7, '\n', H_WORD_NEW_LINE  # OR if (*string == '\n' && *word == '\n')
+        bne $t7, $t6, H_CHAR_NE # if (*string != *word)....
+RESUME_H_CONTAIN_FROM_CHAR_NE:
+        beq $t7, '\n', H_WORD_NEW_LINE  # OR if (*string == '\n' && *word == '\n')....
+        beq $t6, '\n', H_WRAP_AROUND_IF1
+RESUME_H_CONTAIN_FROM_WRAP:
         addi $t9, $t9, 1                # word++ increase word character pointer
         addi $t8, $t8, 1                # string++ increase string character pointer to point at next char
         j H_CONTAIN_LOOP                # while(1)
 
-H_WORD_NEW_LINE:
-	beq $t6, '\n', H_IF_CHARACTERS_NOT_EQUAL # Checks the other way round to ensure both *string and *word equal newline character
+H_WRAP_AROUND_IF1:
+        bne $t7, '\n', H_WRAP_AROUND_IF2
+        j RESUME_H_CONTAIN_FROM_WRAP
+H_WRAP_AROUND_IF2:
+        sub $t8, $t8, $s2 # string = string - number_of_cols
+        subi $t8, $t8, 1 # string = string - number_of_cols - 1
+        subi $t9, $t9, 1 # word--
+        j RESUME_H_CONTAIN_FROM_WRAP
+
+H_WORD_NEW_LINE: #OR if (*string == '\n' && *word == '\n')
+	beq $t6, '\n', H_CHAR_NE_AND_STR_NOT_NEWL_OR_WRD_STR_NEWLINE # Checks the other way round to ensure both *string and *word equal newline character
 	j H_CONTAIN_LOOP	
-H_IF_CHARACTERS_NOT_EQUAL:
+H_CHAR_NE: # if ((*string != *word) && (*string != '\n'))
+        bne $t6, '\n', H_CHAR_NE_AND_STR_NOT_NEWL_OR_WRD_STR_NEWLINE
+        j RESUME_H_CONTAIN_FROM_CHAR_NE
+H_CHAR_NE_AND_STR_NOT_NEWL_OR_WRD_STR_NEWLINE:
         bne $t7, '\n', SET_V1_0         # *word != '\n', break to SET_V1_0
         beq $t7, '\n', SET_V1_1         # *word == '\n', break to SET_V1_1
 
