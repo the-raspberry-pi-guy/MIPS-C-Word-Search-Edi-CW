@@ -525,7 +525,6 @@ SET_V1_0:
 print_dictionary_word:                  # void print_word(char *word)
  	# assuming the address of the dictionary word to be printed is in $a1
  	li  $v0, 11                     # Set syscall to print char   
-#    	move $a1, $a2                   # Move input address to a1
 UNTIL_DONE:                             # while(*word != '\n' && *word != '\0')
         lb $a0, dictionary($a1)         # Load char of word to be printed
         syscall                         # print_char(*word)
