@@ -279,7 +279,7 @@ int main (void)
   strfind(); // search for all matches
 
   if (found == 0) { // if a word hasn't been found at all then print "-1" and a newline to the terminal
-    print_string("-1\n");
+    print_string("-1");
   }
 
   return 0;

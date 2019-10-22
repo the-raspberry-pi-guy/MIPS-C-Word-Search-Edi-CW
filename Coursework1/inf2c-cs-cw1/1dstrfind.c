@@ -110,7 +110,7 @@ void strfind()
   }
 
   if (found == 0) { // if a word hasn't been found then print "-1"
-    print_string("-1\n");
+    print_string("-1");
   }
 }
 
