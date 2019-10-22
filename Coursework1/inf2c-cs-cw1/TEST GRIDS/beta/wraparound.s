@@ -466,20 +466,18 @@ D_CONTAIN_LOOP:
         
         bne $t7, $t6, D_IF_CHARACTERS_NOT_EQUAL# if (*string != *word)...
         beq $t7, '\n', D_WORD_NEW_LINE  # OR if (*string == '\n' && *word == '\n')
-D_NOT_WORD_OR_STRING_NEW_LINE_RESUME:        
+D_NOT_NEW_LINE_RESUME:        
         add $t8, $t8, $s2               # Add number of cols to string to index it to character directly below
         addi $t8, $t8, 2                # string = string + number_of_cols + 1 + 1 - add 2 to the index to compensate for newline character and for diagonalisation
         
         bgt $t8, $s4, D_STR_GT_END_ADD_OR_STR_NL# if ((string > end_address) ...)
-        beq $t6, '\n', D_STR_GT_END_ADD_OR_STR_NL_WORD_ADJUST# OR if (*string == '\n')
+        beq $t6, '\n', D_STR_GT_END_ADD_OR_STR_NL# OR if (*string == '\n')
 D_RESUME_CONTAIN_LOOP_AFTER_WRAP:        
         addi $t5, $t5, 1                # temp_row++
         addi $t4, $t4, 1                # temp_col++
         addi $t9, $t9, 1                # word++ increase word character pointer
         j D_CONTAIN_LOOP                # while(1)
 
-D_STR_GT_END_ADD_OR_STR_NL_WORD_ADJUST:
-        subi $t9, $t9, 1                 # Adjust word back one place to wait for the diagonal to be looped around
 D_STR_GT_END_ADD_OR_STR_NL:
         subi $t8, $t8, 2                # string = string -1 -1        
         sub $t8, $t8, $s2               # string = string - number_of_cols -1 -1 // undoing the previous increment
@@ -488,7 +486,6 @@ D_STR_GT_END_ADD_OR_STR_NL:
        	add $t2, $t2, $t5               # (temp_row * number_of_cols) + temp_row
        	add $t2, $t2, $t5               # (temp_row * number_of_cols) + temp_row + temp_row
        	sub $t8, $t8, $t2               # string = string + (number_of_rows-(temp_col+1))*(number_of_cols + 1 + 1); // only skip back the required number of rows
-
        	                                # Now checking and adjusting if in the lower left corner of the grid
        	addi $t3, $t4, 1                # temp_col + 1
        	blt $t3, $s1, D_LOWER_LEFT_GRID # if (temp_col+1 < number_of_rows) { // if in the lower left corner of the grid
@@ -505,9 +502,8 @@ D_LOWER_LEFT_GRID:
         
 D_WORD_NEW_LINE:
 	beq $t6, '\n', D_IF_CHARACTERS_NOT_EQUAL # Checks the other way round to ensure both *string and *word equal newline character
-	j D_NOT_WORD_OR_STRING_NEW_LINE_RESUME
+	j D_NOT_NEW_LINE_RESUME
 D_IF_CHARACTERS_NOT_EQUAL:
-        beq $t6, '\n', D_NOT_WORD_OR_STRING_NEW_LINE_RESUME# ... && (*string != '\n'))
         bne $t7, '\n', SET_V1_0         # *word != '\n', break to SET_V1_0
         beq $t7, '\n', SET_V1_1         # *word == '\n', break to SET_V1_1
 

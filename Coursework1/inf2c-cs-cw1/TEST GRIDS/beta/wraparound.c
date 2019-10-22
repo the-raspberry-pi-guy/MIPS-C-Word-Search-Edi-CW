@@ -130,7 +130,7 @@ int d_contain(char *string, char *word) //two targets
   int temp_col = current_col;
 
   while (1) {
-    if (((*string != *word) && (*string != '\n')) || (*string == '\n' && *word == '\n')){ // if the string is no longer the same as the word
+    if ((*string != *word) || (*string == '\n' && *word == '\n')){ // if the string is no longer the same as the word
       return ((*word == '\n')); // return true if dictionary word is new line, false if it isn't, functionality same as h_contain
     }
     
