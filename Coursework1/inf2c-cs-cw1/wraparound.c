@@ -126,7 +126,6 @@ int v_contain(char *string, char *word) //two targets
 // DIAGONAL STRING/WORD MATCHER - checks diagonal match
 int d_contain(char *string, char *word) //two targets
 {
-  char *word_copy = word;
   int temp_row = current_row;
   int temp_col = current_col;
 
