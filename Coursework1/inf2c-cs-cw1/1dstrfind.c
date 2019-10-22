@@ -204,5 +204,7 @@ int main (void)
   
   strfind(); // go find a match between the dictionary and grid
 
+  print_char('\n'); // Ensure line is returned for the terminal prompt
+
   return 0;
 }

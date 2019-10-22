@@ -327,5 +327,7 @@ int main (void)
     print_string("-1");
   }
 
+  print_char('\n'); // Ensure line is returned for the terminal prompt
+
   return 0;
 }
