@@ -284,12 +284,21 @@ END_WITH_FAILURE:                       # If no word is found then print out -1
         
 END:
         beqz $s4, PRINT_MINUS1
+        
+        li  $v0, 11                     # Set syscall to print char   
+        addi $a0, $0, 10                # print new line
+        syscall 
+        
         j main_end
         
 PRINT_MINUS1:
         li  $v0, 1                      # Set syscall to print integer  
         add $a0, $0, -1                 # Add -1 to be printed
         syscall                         # print_string("-1")
+
+        li  $v0, 11                     # Set syscall to print char   
+        addi $a0, $0, 10                # print new line
+        syscall 
 
 #------------------------------------------------------------------
 # Exit, DO NOT MODIFY THIS BLOCK
