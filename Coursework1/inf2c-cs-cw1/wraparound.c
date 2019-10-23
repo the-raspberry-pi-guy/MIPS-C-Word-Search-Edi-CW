@@ -317,7 +317,6 @@ int main (void)
   }
 
   number_of_rows--; // The grid contains a \n then \0 at the end, so a blank new line needs to be removed
-  number_of_rows--; // This removes the extra blank line error in the row number calculations
   end_address = grid + (number_of_rows*number_of_cols) + number_of_rows + 1; // Store the address of the end of the grid
   // Base of grid + total number of characters + all of the newlines (one per row) + EOF character
 
