@@ -163,6 +163,7 @@ INDEX_DICT:
 
 AFTER_DICT:
         move $s0, $t0                   # dict_num_words = dict_idx - store total dictionary words
+        subi $s0, $s0, 1                # dict_num_words = dict_idx - 1 (ignore the last line which has no word on it)
 
 # Run calculations to work out the number of columns and rows in the grid        
         move $t0, $0                    # int i = 0
