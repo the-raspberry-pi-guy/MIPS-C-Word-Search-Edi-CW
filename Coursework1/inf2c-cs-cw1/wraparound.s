@@ -471,9 +471,10 @@ D_CONTAIN_LOOP:
 D_NOT_WORD_OR_STRING_NEW_LINE_RESUME:        
         add $t8, $t8, $s2               # Add number of cols to string to index it to character directly below
         addi $t8, $t8, 2                # string = string + number_of_cols + 1 + 1 - add 2 to the index to compensate for newline character and for diagonalisation
-        
-        bgt $t8, $s4, D_STR_GT_END_ADD_OR_STR_NL# if ((string > end_address) ...)
-        beq $t6, '\n', D_STR_GT_END_ADD_OR_STR_NL_WORD_ADJUST# OR if (*string == '\n')
+
+        beq $t6, '\n', D_STR_GT_END_ADD_OR_STR_NL_WORD_ADJUST# if (*string == '\n')        
+        bgt $t8, $s4, D_STR_GT_END_ADD_OR_STR_NL# OR if ((string > end_address) ...)
+
 D_RESUME_CONTAIN_LOOP_AFTER_WRAP:        
         addi $t5, $t5, 1                # temp_row++
         addi $t4, $t4, 1                # temp_col++
