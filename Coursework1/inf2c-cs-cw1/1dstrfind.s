@@ -162,7 +162,6 @@ INDEX_DICT:
 
 AFTER_DICT:
         move $s7, $t0                   # dict_num_words = dict_idx - store total dictionary words
-        subi $s7, $s7, 1                # dict_num_words = dict_idx - 1 (ignore the last line which has no word on it)
 
         jal strfind                     # strfind() - jump to the strfind() procedure 
  	
@@ -276,13 +275,6 @@ UNTIL_DONE:                             # while(*word != '\n' && *word != '\0')
         j UNTIL_DONE                    # Continue while(*word != '\n' && *word != '\0')
 STOP_PRINTING_WORD:
         jr $ra                          # Return to register address
-
-END_WITH_FAILURE:                       # If no word is found then print out -1
-        li $v0, 1                       # Set syscall to print integer  
-        addi $a0, $0, -1                # Add -1 to be printed
-        syscall                         # print_string("-1")
-        li $v0, 4                       # Load to print char
-        addi $a0, $0, 10                # print new line
         
 END:
         beqz $s4, PRINT_MINUS1
