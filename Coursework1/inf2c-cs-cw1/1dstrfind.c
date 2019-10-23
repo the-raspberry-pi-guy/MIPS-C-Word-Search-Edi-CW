@@ -200,7 +200,7 @@ int main (void)
     idx += 1;
   } while (1); // this will stop from the break if end of file
 
-  dict_num_words = dict_idx - 1; // Ignore the last line of the dicitonary that has no word on it
+  dict_num_words = dict_idx; // Ignore the last line of the dicitonary that has no word on it
   
   strfind(); // go find a match between the dictionary and grid
 
