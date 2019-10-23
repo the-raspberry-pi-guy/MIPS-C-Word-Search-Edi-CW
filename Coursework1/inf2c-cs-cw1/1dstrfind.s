@@ -162,6 +162,8 @@ INDEX_DICT:
 
 AFTER_DICT:
         move $s7, $t0                   # dict_num_words = dict_idx - store total dictionary words
+        subi $s7, $s7, 1                # dict_num_words = dict_idx - 1 (ignore the last line which has no word on it)
+
         jal strfind                     # strfind() - jump to the strfind() procedure 
  	
  
