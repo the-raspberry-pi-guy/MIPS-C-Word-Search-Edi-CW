@@ -139,7 +139,6 @@ void strfind()
           print_char('H');
           print_char(' ');
           print_word(dictionary_word); // print the word that is there
-          print_char(' ');
           found++; // found at least one word, so increment found
           }
         if (v_contain(grid + grid_idx, dictionary_word)) { // if VERTICAL WORD found, print it out with the details
@@ -153,7 +152,6 @@ void strfind()
           print_char('V');
           print_char(' ');
           print_word(dictionary_word); // print the word that is there
-          print_char(' ');
           found++; // found at least one word, so increment found
           }
         if (d_contain(grid + grid_idx, dictionary_word)) { // if DIAGONAL WORD found, print it out with the details
@@ -167,7 +165,6 @@ void strfind()
           print_char('D');
           print_char(' ');
           print_word(dictionary_word); // print the word that is there
-          print_char(' ');
           found++; // found at least one word, so increment found
           }
         grid_idx++; // increment the grid index to keep looking through the grid
