@@ -195,6 +195,7 @@ INCREMENT_ROW:
    
 FINISH_ROW_CALC:     
         addi $s1, $s1, -1               # number_of_rows-- (get rid of empty row)
+        addi $s1, $s1, -1               # number_of_rows-- (get rid of another empty row to adjust for EOF)
         
         jal strfind                     # strfind() - jump to the strfind() procedure 
  	
